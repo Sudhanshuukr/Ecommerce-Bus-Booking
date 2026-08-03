@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { Star, ArrowRight, Wifi, Zap, Tv, Coffee, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BusSchedule } from '../types/bus';
 
@@ -150,15 +150,16 @@ export const BusCard = React.memo<BusCardProps>(function BusCard({
             </p>
           </div>
 
-          <Button
+          <Link
+            href={`/buses/${id}`}
             onClick={handleSelect}
-            size="default"
-            className="px-6 font-semibold shadow-subtle hover:shadow-soft active:scale-95 transition-all"
+            className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-subtle hover:bg-primary-600 hover:shadow-soft active:scale-95 transition-all"
           >
             View Details
-          </Button>
+          </Link>
         </div>
       </article>
     </Card>
   );
 });
+
