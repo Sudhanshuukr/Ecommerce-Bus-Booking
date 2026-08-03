@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Container, Section } from '@/components/layout';
 import { HeroContent } from './HeroContent';
 import { HeroVisual } from './HeroVisual';
+import { SearchPanel } from '@/features/search';
 
 export function Hero() {
   return (
@@ -17,6 +18,11 @@ export function Hero() {
           <div className="lg:col-span-5">
             <HeroVisual />
           </div>
+        </div>
+
+        {/* Search Panel Feature Container */}
+        <div className="mt-10 lg:mt-14">
+          <SearchPanel />
         </div>
       </Container>
     </Section>
