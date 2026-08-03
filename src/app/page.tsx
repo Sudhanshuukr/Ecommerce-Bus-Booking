@@ -1,12 +1,14 @@
 import { AppShell, Container, Section } from '@/components/layout';
-import { Hero } from '@/features/home/hero';
+import { Hero, OffersSection, PopularRoutesSection } from '@/features/home';
 import { BusGrid } from '@/features/bus';
 
 export default function Home() {
   return (
     <AppShell>
       <Hero />
-      <Section spacing="lg" className="bg-background pt-8 pb-16">
+      <OffersSection />
+      <PopularRoutesSection />
+      <Section spacing="lg" className="bg-slate-50/50 py-12 md:py-16">
         <Container>
           <BusGrid />
         </Container>
@@ -14,8 +16,3 @@ export default function Home() {
     </AppShell>
   );
 }
-
-
-
-
-
