@@ -24,17 +24,23 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
   className,
 }) {
   const popoverRef = React.useRef<HTMLDivElement>(null);
-  const totalCount = passengers.adults + passengers.children;
+  const adults = passengers.adults || 1;
+  const children = passengers.children || 0;
+  const infants = passengers.infants || 0;
+  const totalCount = adults + children + infants;
 
   // Format label summary
   const summaryText = React.useMemo(() => {
     const parts: string[] = [];
-    parts.push(`${passengers.adults} ${passengers.adults === 1 ? 'Adult' : 'Adults'}`);
-    if (passengers.children > 0) {
-      parts.push(`${passengers.children} ${passengers.children === 1 ? 'Child' : 'Children'}`);
+    parts.push(`${adults} ${adults === 1 ? 'Adult' : 'Adults'}`);
+    if (children > 0) {
+      parts.push(`${children} ${children === 1 ? 'Child' : 'Children'}`);
+    }
+    if (infants > 0) {
+      parts.push(`${infants} ${infants === 1 ? 'Infant' : 'Infants'}`);
     }
     return parts.join(', ');
-  }, [passengers]);
+  }, [adults, children, infants]);
 
   // Close popover when clicking outside or pressing Escape
   React.useEffect(() => {
@@ -74,6 +80,7 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
         type="button"
         onClick={() => onToggleOpen()}
         aria-expanded={isOpen}
+        aria-controls="passenger-selector-dialog"
         aria-haspopup="dialog"
         aria-label={`Select passengers. Current: ${summaryText}`}
         className={cn(
@@ -99,9 +106,10 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
       {/* Popover Content Card */}
       {isOpen && (
         <div
+          id="passenger-selector-dialog"
           role="dialog"
           aria-label="Passenger Selection Dialog"
-          className="absolute top-full left-0 z-30 mt-2 w-full min-w-[260px] rounded-xl border border-border bg-white p-4 shadow-modal transition-all duration-normal animate-in fade-in-50 zoom-in-95"
+          className="absolute top-full left-0 z-40 mt-2 w-full min-w-[260px] rounded-xl border border-border bg-white p-4 shadow-modal transition-all duration-normal animate-in fade-in-50 zoom-in-95"
         >
           <div className="space-y-4">
             {/* Adult Counter */}
@@ -114,14 +122,14 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
                 <button
                   type="button"
                   onClick={() => onUpdateCount('adults', -1)}
-                  disabled={passengers.adults <= MIN_ADULTS}
+                  disabled={adults <= MIN_ADULTS}
                   aria-label="Decrease adult count"
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
                 <span className="w-5 text-center text-sm font-semibold text-slate-900" aria-live="polite">
-                  {passengers.adults}
+                  {adults}
                 </span>
                 <button
                   type="button"
@@ -147,14 +155,14 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
                 <button
                   type="button"
                   onClick={() => onUpdateCount('children', -1)}
-                  disabled={passengers.children <= 0}
+                  disabled={children <= 0}
                   aria-label="Decrease children count"
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
                 <span className="w-5 text-center text-sm font-semibold text-slate-900" aria-live="polite">
-                  {passengers.children}
+                  {children}
                 </span>
                 <button
                   type="button"

@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  SearchFormState,
+  SearchQuery,
   SearchFormErrors,
   SearchUIState,
   TripType,
@@ -11,44 +11,148 @@ import {
   MIN_ADULTS,
   MAX_PASSENGERS,
 } from '../types/search-form';
-import { validateSearchForm, getTodayDateString } from '../utils/validation';
+import { LocationObject } from '../types/location';
+import { findLocationByQuery, LOCATION_DATASET } from '../constants/locations';
+import { validateSearchQuery, getTodayDateString } from '../utils/validation';
 
 export interface UseSearchFormOptions {
-  initialValues?: Partial<SearchFormState>;
-  onSearchSubmit?: (values: SearchFormState) => void;
+  initialQuery?: Partial<SearchQuery>;
+  syncWithUrl?: boolean;
+  onSearchSubmit?: (query: SearchQuery) => void;
+}
+
+/**
+ * Parses URL search parameters into a structured SearchQuery domain model.
+ */
+export function parseSearchQueryFromUrl(searchParams: URLSearchParams): SearchQuery {
+  const todayStr = getTodayDateString();
+
+  const originParam = searchParams.get('origin') || searchParams.get('from') || '';
+  const destParam = searchParams.get('destination') || searchParams.get('to') || '';
+  const departureDate = searchParams.get('departureDate') || todayStr;
+  const returnDate = searchParams.get('returnDate') || '';
+  const rawTripType = searchParams.get('tripType');
+
+  const tripType: TripType =
+    rawTripType === 'ROUND_TRIP' || rawTripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY';
+
+  const adults = Math.max(MIN_ADULTS, parseInt(searchParams.get('adults') || '1', 10));
+  const children = Math.max(0, parseInt(searchParams.get('children') || '0', 10));
+
+  const origin = findLocationByQuery(originParam) || (originParam ? {
+    id: `custom-${originParam.toLowerCase()}`,
+    name: `${originParam} Station`,
+    city: originParam,
+    state: '',
+    code: originParam.slice(0, 3).toUpperCase(),
+  } : null);
+
+  const destination = findLocationByQuery(destParam) || (destParam ? {
+    id: `custom-${destParam.toLowerCase()}`,
+    name: `${destParam} Station`,
+    city: destParam,
+    state: '',
+    code: destParam.slice(0, 3).toUpperCase(),
+  } : null);
+
+  return {
+    origin,
+    destination,
+    departureDate,
+    returnDate,
+    tripType,
+    passengers: { adults, children },
+  };
+}
+
+/**
+ * Converts a SearchQuery domain model into URLSearchParams.
+ */
+export function buildSearchParamsFromQuery(query: SearchQuery): URLSearchParams {
+  const params = new URLSearchParams();
+
+  if (query.origin) {
+    params.set('origin', query.origin.code || query.origin.city);
+  }
+  if (query.destination) {
+    params.set('destination', query.destination.code || query.destination.city);
+  }
+  if (query.departureDate) {
+    params.set('departureDate', query.departureDate);
+  }
+  if (query.tripType === 'ROUND_TRIP' && query.returnDate) {
+    params.set('returnDate', query.returnDate);
+  }
+  params.set('adults', String(query.passengers.adults || 1));
+  if ((query.passengers.children || 0) > 0) {
+    params.set('children', String(query.passengers.children));
+  }
+  params.set('tripType', query.tripType);
+
+  return params;
 }
 
 export function useSearchForm(options: UseSearchFormOptions = {}) {
-  const { initialValues, onSearchSubmit } = options;
+  const { initialQuery, syncWithUrl = true, onSearchSubmit } = options;
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const todayStr = React.useMemo(() => getTodayDateString(), []);
 
-  // 1. Domain Form State
-  const [formState, setFormState] = React.useState<SearchFormState>({
-    tripType: initialValues?.tripType || 'one-way',
-    origin: initialValues?.origin || '',
-    destination: initialValues?.destination || '',
-    departureDate: initialValues?.departureDate || todayStr,
-    returnDate: initialValues?.returnDate || '',
-    passengers: initialValues?.passengers || { adults: 1, children: 0 },
-  });
+  // 1. Initial State Resolution
+  const defaultQuery = React.useMemo<SearchQuery>(() => {
+    if (syncWithUrl && searchParams.toString()) {
+      const parsed = parseSearchQueryFromUrl(searchParams);
+      return {
+        ...parsed,
+        ...initialQuery,
+      };
+    }
 
-  // 2. Validation Errors State
+    return {
+      origin: initialQuery?.origin || LOCATION_DATASET[0], // NYC default
+      destination: initialQuery?.destination || LOCATION_DATASET[1], // BOS default
+      departureDate: initialQuery?.departureDate || todayStr,
+      returnDate: initialQuery?.returnDate || '',
+      tripType: initialQuery?.tripType || 'ONE_WAY',
+      passengers: initialQuery?.passengers || { adults: 1, children: 0 },
+    };
+  }, [searchParams, syncWithUrl, initialQuery, todayStr]);
+
+  const [query, setQuery] = React.useState<SearchQuery>(defaultQuery);
   const [errors, setErrors] = React.useState<SearchFormErrors>({});
-
-  // 3. UI State
   const [uiState, setUiState] = React.useState<SearchUIState>({
     isPassengerSelectorOpen: false,
     isSubmitting: false,
     isSwapping: false,
   });
 
-  // Handlers for Form State
+  // Keep state synchronized if URL search parameters change externally
+  React.useEffect(() => {
+    if (syncWithUrl && searchParams.toString()) {
+      const parsed = parseSearchQueryFromUrl(searchParams);
+      setQuery((prev) => {
+        // Prevent state overwrite if values are identical
+        if (
+          prev.origin?.id === parsed.origin?.id &&
+          prev.destination?.id === parsed.destination?.id &&
+          prev.departureDate === parsed.departureDate &&
+          prev.returnDate === parsed.returnDate &&
+          prev.tripType === parsed.tripType &&
+          prev.passengers.adults === parsed.passengers.adults &&
+          prev.passengers.children === parsed.passengers.children
+        ) {
+          return prev;
+        }
+        return parsed;
+      });
+    }
+  }, [searchParams, syncWithUrl]);
+
+  // Setters & Handlers
   const setTripType = React.useCallback((tripType: TripType) => {
-    setFormState((prev) => {
-      // Clear return date if switching to one-way
-      const nextReturnDate = tripType === 'one-way' ? '' : prev.returnDate || prev.departureDate;
+    setQuery((prev) => {
+      const nextReturnDate = tripType === 'ONE_WAY' ? '' : prev.returnDate || prev.departureDate;
       return {
         ...prev,
         tripType,
@@ -58,21 +162,20 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
     setErrors((prev) => ({ ...prev, returnDate: undefined }));
   }, []);
 
-  const setOrigin = React.useCallback((origin: string) => {
-    setFormState((prev) => ({ ...prev, origin }));
+  const setOrigin = React.useCallback((origin: LocationObject | null) => {
+    setQuery((prev) => ({ ...prev, origin }));
     setErrors((prev) => ({ ...prev, origin: undefined, destination: undefined, general: undefined }));
   }, []);
 
-  const setDestination = React.useCallback((destination: string) => {
-    setFormState((prev) => ({ ...prev, destination }));
+  const setDestination = React.useCallback((destination: LocationObject | null) => {
+    setQuery((prev) => ({ ...prev, destination }));
     setErrors((prev) => ({ ...prev, destination: undefined, origin: undefined, general: undefined }));
   }, []);
 
   const setDepartureDate = React.useCallback((departureDate: string) => {
-    setFormState((prev) => {
-      // Adjust return date if departure date is set past existing return date in round-trip
+    setQuery((prev) => {
       let nextReturnDate = prev.returnDate;
-      if (prev.tripType === 'round-trip' && prev.returnDate && prev.returnDate < departureDate) {
+      if (prev.tripType === 'ROUND_TRIP' && prev.returnDate && prev.returnDate < departureDate) {
         nextReturnDate = departureDate;
       }
       return {
@@ -85,25 +188,24 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
   }, []);
 
   const setReturnDate = React.useCallback((returnDate: string) => {
-    setFormState((prev) => ({ ...prev, returnDate }));
+    setQuery((prev) => ({ ...prev, returnDate }));
     setErrors((prev) => ({ ...prev, returnDate: undefined }));
   }, []);
 
   const updatePassengerCount = React.useCallback(
     (type: keyof PassengerCounts, delta: number) => {
-      setFormState((prev) => {
-        const currentCount = prev.passengers[type];
+      setQuery((prev) => {
+        const currentCount = prev.passengers[type] || 0;
         const newCount = Math.max(0, currentCount + delta);
 
-        // Apply boundary validation
         if (type === 'adults' && newCount < MIN_ADULTS) {
           return prev;
         }
 
-        const totalPassengers =
-          type === 'adults'
-            ? newCount + prev.passengers.children
-            : prev.passengers.adults + newCount;
+        const currentAdults = type === 'adults' ? newCount : (prev.passengers.adults || 0);
+        const currentChildren = type === 'children' ? newCount : (prev.passengers.children || 0);
+        const currentInfants = type === 'infants' ? newCount : (prev.passengers.infants || 0);
+        const totalPassengers = currentAdults + currentChildren + currentInfants;
 
         if (totalPassengers > MAX_PASSENGERS) {
           return prev;
@@ -122,10 +224,9 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
     []
   );
 
-  // Dedicated Swap Handler with UI animation pulse
   const handleSwapLocations = React.useCallback(() => {
     setUiState((prev) => ({ ...prev, isSwapping: true }));
-    setFormState((prev) => ({
+    setQuery((prev) => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin,
@@ -137,7 +238,6 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
     }, 300);
   }, []);
 
-  // UI Popover Toggle
   const togglePassengerSelector = React.useCallback((isOpen?: boolean) => {
     setUiState((prev) => ({
       ...prev,
@@ -145,14 +245,13 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
     }));
   }, []);
 
-  // Submit Handler
   const handleSubmit = React.useCallback(
     (e?: React.FormEvent) => {
       if (e) {
         e.preventDefault();
       }
 
-      const { isValid, errors: validationErrors } = validateSearchForm(formState);
+      const { isValid, errors: validationErrors } = validateSearchQuery(query);
 
       if (!isValid) {
         setErrors(validationErrors);
@@ -163,33 +262,23 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
       setUiState((prev) => ({ ...prev, isSubmitting: true }));
 
       if (onSearchSubmit) {
-        onSearchSubmit(formState);
+        onSearchSubmit(query);
       } else {
-        const query = new URLSearchParams({
-          origin: formState.origin.trim(),
-          destination: formState.destination.trim(),
-          departureDate: formState.departureDate,
-          returnDate: formState.returnDate || '',
-          adults: String(formState.passengers.adults),
-          children: String(formState.passengers.children),
-          tripType: formState.tripType,
-        }).toString();
-
-        router.push(`/search?${query}`);
+        const urlParams = buildSearchParamsFromQuery(query);
+        router.push(`/search?${urlParams.toString()}`);
       }
 
-      // Simulate processing state transition
       setTimeout(() => {
         setUiState((prev) => ({ ...prev, isSubmitting: false }));
       }, 400);
 
       return true;
     },
-    [formState, onSearchSubmit, router]
+    [query, onSearchSubmit, router]
   );
 
   return {
-    formState,
+    query,
     errors,
     uiState,
     todayStr,

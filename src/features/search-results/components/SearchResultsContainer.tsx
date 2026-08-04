@@ -29,7 +29,8 @@ export function SearchResultsContainer() {
     const adults = Math.max(1, parseInt(searchParams.get('adults') || '1', 10));
     const children = Math.max(0, parseInt(searchParams.get('children') || '0', 10));
     const rawTripType = searchParams.get('tripType');
-    const tripType: TripType = rawTripType === 'round-trip' ? 'round-trip' : 'one-way';
+    const tripType: TripType =
+      rawTripType === 'ROUND_TRIP' || rawTripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY';
 
     return {
       origin,
@@ -78,18 +79,7 @@ export function SearchResultsContainer() {
     return sortBusSchedules(filtered, filterState.sortBy);
   }, [parsedQuery, filterState]);
 
-  // Initial values for SearchPanel form pre-fill
-  const initialFormValues = React.useMemo(
-    () => ({
-      origin: parsedQuery.origin,
-      destination: parsedQuery.destination,
-      departureDate: parsedQuery.departureDate,
-      returnDate: parsedQuery.returnDate,
-      passengers: { adults: parsedQuery.adults, children: parsedQuery.children },
-      tripType: parsedQuery.tripType,
-    }),
-    [parsedQuery]
-  );
+
 
   return (
     <div className="space-y-6">
@@ -108,7 +98,7 @@ export function SearchResultsContainer() {
       {/* Expandable Search Panel for Editing Parameters */}
       {isEditOpen && (
         <div className="animate-in fade-in-50 zoom-in-95 transition-all duration-normal">
-          <SearchPanel initialValues={initialFormValues} />
+          <SearchPanel syncWithUrl={true} />
         </div>
       )}
 

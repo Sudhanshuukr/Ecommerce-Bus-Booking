@@ -1,5 +1,5 @@
 import {
-  SearchFormState,
+  SearchQuery,
   SearchFormErrors,
   MIN_ADULTS,
   MAX_PASSENGERS,
@@ -17,57 +17,58 @@ export function getTodayDateString(): string {
 }
 
 /**
- * Validates the search form state against business rules.
+ * Validates the complete SearchQuery domain model against business rules.
  */
-export function validateSearchForm(values: SearchFormState): {
+export function validateSearchQuery(query: SearchQuery): {
   isValid: boolean;
   errors: SearchFormErrors;
 } {
   const errors: SearchFormErrors = {};
 
-  const trimmedOrigin = values.origin.trim();
-  const trimmedDestination = values.destination.trim();
-
   // 1. Origin check
-  if (!trimmedOrigin) {
-    errors.origin = 'Please enter a departure city';
+  if (!query.origin) {
+    errors.origin = 'Please select a departure city';
   }
 
   // 2. Destination check
-  if (!trimmedDestination) {
-    errors.destination = 'Please enter an arrival city';
+  if (!query.destination) {
+    errors.destination = 'Please select an arrival city';
   }
 
   // 3. Origin & Destination must differ
-  if (
-    trimmedOrigin &&
-    trimmedDestination &&
-    trimmedOrigin.toLowerCase() === trimmedDestination.toLowerCase()
-  ) {
-    errors.destination = 'Origin and destination cities must be different';
+  if (query.origin && query.destination) {
+    if (
+      query.origin.id === query.destination.id ||
+      query.origin.code.toLowerCase() === query.destination.code.toLowerCase()
+    ) {
+      errors.destination = 'Origin and destination cities must be different';
+    }
   }
 
   // 4. Departure Date checks
   const todayStr = getTodayDateString();
-  if (!values.departureDate) {
+  if (!query.departureDate) {
     errors.departureDate = 'Please select a departure date';
-  } else if (values.departureDate < todayStr) {
+  } else if (query.departureDate < todayStr) {
     errors.departureDate = 'Departure date cannot be in the past';
   }
 
-  // 5. Return Date checks (for round-trip)
-  if (values.tripType === 'round-trip') {
-    if (!values.returnDate) {
+  // 5. Return Date checks (for ROUND_TRIP)
+  if (query.tripType === 'ROUND_TRIP') {
+    if (!query.returnDate) {
       errors.returnDate = 'Please select a return date';
-    } else if (values.returnDate < values.departureDate) {
+    } else if (query.returnDate < query.departureDate) {
       errors.returnDate = 'Return date cannot be earlier than departure date';
     }
   }
 
   // 6. Passenger checks
-  const totalPassengers = values.passengers.adults + values.passengers.children;
+  const adults = query.passengers.adults || 0;
+  const children = query.passengers.children || 0;
+  const infants = query.passengers.infants || 0;
+  const totalPassengers = adults + children + infants;
 
-  if (values.passengers.adults < MIN_ADULTS) {
+  if (adults < MIN_ADULTS) {
     errors.passengers = `At least ${MIN_ADULTS} adult passenger is required`;
   } else if (totalPassengers > MAX_PASSENGERS) {
     errors.passengers = `Maximum passenger limit is ${MAX_PASSENGERS}`;

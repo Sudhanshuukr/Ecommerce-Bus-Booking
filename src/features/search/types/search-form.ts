@@ -1,16 +1,20 @@
-export type TripType = 'one-way' | 'round-trip';
+import { LocationObject } from './location';
+
+export type TripType = 'ONE_WAY' | 'ROUND_TRIP';
 
 export interface PassengerCounts {
   adults: number;
   children: number;
+  infants?: number;
+  [key: string]: number | undefined;
 }
 
-export interface SearchFormState {
-  tripType: TripType;
-  origin: string;
-  destination: string;
+export interface SearchQuery {
+  origin: LocationObject | null;
+  destination: LocationObject | null;
   departureDate: string;
   returnDate: string;
+  tripType: TripType;
   passengers: PassengerCounts;
 }
 
