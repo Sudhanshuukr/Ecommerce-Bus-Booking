@@ -22,7 +22,9 @@ export function Hero() {
 
         {/* Search Panel Feature Container */}
         <div className="mt-10 lg:mt-14">
-          <SearchPanel />
+          <React.Suspense fallback={<div className="w-full h-56 rounded-2xl bg-white shadow-modal animate-pulse" />}>
+            <SearchPanel />
+          </React.Suspense>
         </div>
       </Container>
     </Section>

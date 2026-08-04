@@ -15,9 +15,9 @@ export interface SearchPanelProps extends UseSearchFormOptions {
   className?: string;
 }
 
-export function SearchPanel({ initialValues, onSearchSubmit, className }: SearchPanelProps) {
+export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, className }: SearchPanelProps) {
   const {
-    formState,
+    query,
     errors,
     uiState,
     todayStr,
@@ -30,7 +30,7 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
     handleSwapLocations,
     togglePassengerSelector,
     handleSubmit,
-  } = useSearchForm({ initialValues, onSearchSubmit });
+  } = useSearchForm({ initialQuery, syncWithUrl, onSearchSubmit });
 
   return (
     <Card
@@ -47,27 +47,30 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
             aria-label="Trip Type Selection"
             className="inline-flex items-center rounded-xl bg-slate-100/80 p-1 text-slate-600"
           >
-            {(['one-way', 'round-trip'] as TripType[]).map((type) => (
+            {([
+              { value: 'ONE_WAY', label: 'One Way' },
+              { value: 'ROUND_TRIP', label: 'Round Trip' },
+            ] as { value: TripType; label: string }[]).map((tab) => (
               <button
-                key={type}
+                key={tab.value}
                 type="button"
                 role="tab"
-                aria-selected={formState.tripType === type}
-                onClick={() => setTripType(type)}
+                aria-selected={query.tripType === tab.value}
+                onClick={() => setTripType(tab.value)}
                 className={cn(
-                  'rounded-lg px-4 py-1.5 text-xs font-semibold tracking-wide transition-all duration-normal capitalize',
-                  formState.tripType === type
+                  'rounded-lg px-4 py-1.5 text-xs font-semibold tracking-wide transition-all duration-normal',
+                  query.tripType === tab.value
                     ? 'bg-white text-primary shadow-subtle'
                     : 'text-slate-600 hover:text-slate-900'
                 )}
               >
-                {type.replace('-', ' ')}
+                {tab.label}
               </button>
             ))}
           </div>
 
           <div className="text-xs font-medium text-muted-foreground hidden sm:block">
-            Direct & Connecting Routes Available
+            Direct & Connecting Bus Schedules
           </div>
         </div>
 
@@ -81,10 +84,7 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
           </div>
         )}
 
-        {/* Main Grid / Row Layout */}
-        {/* Desktop Layout: lg:flex lg:items-end lg:gap-3 */}
-        {/* Tablet Layout: md:grid md:grid-cols-2 md:gap-4 */}
-        {/* Mobile Layout: flex flex-col space-y-4 */}
+        {/* Main Search Controls Grid / Row Layout */}
         <div className="flex flex-col space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:flex lg:flex-row lg:items-end lg:gap-3">
           {/* Location Group (Origin + Swap + Destination) */}
           <div className="relative flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 md:col-span-2 lg:flex-1 lg:space-x-2">
@@ -93,7 +93,7 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
                 id="search-origin"
                 label="From"
                 type="origin"
-                value={formState.origin}
+                value={query.origin}
                 onChange={setOrigin}
                 placeholder="e.g. New York, NY"
                 error={errors.origin}
@@ -110,7 +110,7 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
                 id="search-destination"
                 label="To"
                 type="destination"
-                value={formState.destination}
+                value={query.destination}
                 onChange={setDestination}
                 placeholder="e.g. Boston, MA"
                 error={errors.destination}
@@ -124,7 +124,7 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
               <DatePicker
                 id="search-departure-date"
                 label="Departure"
-                value={formState.departureDate}
+                value={query.departureDate}
                 minDate={todayStr}
                 onChange={setDepartureDate}
                 showQuickPresets
@@ -136,9 +136,9 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
               <DatePicker
                 id="search-return-date"
                 label="Return"
-                value={formState.returnDate}
-                minDate={formState.departureDate || todayStr}
-                disabled={formState.tripType === 'one-way'}
+                value={query.returnDate}
+                minDate={query.departureDate || todayStr}
+                disabled={query.tripType === 'ONE_WAY'}
                 onChange={setReturnDate}
                 error={errors.returnDate}
               />
@@ -148,7 +148,7 @@ export function SearchPanel({ initialValues, onSearchSubmit, className }: Search
           {/* Passengers Group */}
           <div className="md:col-span-1 lg:w-48">
             <PassengerSelector
-              passengers={formState.passengers}
+              passengers={query.passengers}
               onUpdateCount={updatePassengerCount}
               isOpen={uiState.isPassengerSelectorOpen}
               onToggleOpen={togglePassengerSelector}
