@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { AppShell, Container, Section } from '@/components/layout';
-import { BookingContainer } from '@/features/booking';
+import { BookingContainer } from '@/features/booking/components/BookingContainer';
 
 export const metadata = {
   title: 'Bus Details & Seat Selection | Bus Booking Platform',

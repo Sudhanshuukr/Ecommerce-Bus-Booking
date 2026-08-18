@@ -24,10 +24,11 @@ export const FilterSidebar = React.memo<FilterSidebarProps>(function FilterSideb
   className,
 }) {
   const hasActiveFilters =
-    filterState.priceMax < 100 ||
+    filterState.priceMax < 3000 ||
     filterState.busTypes.length > 0 ||
     filterState.amenities.length > 0 ||
     filterState.timeWindows.length > 0;
+
 
   return (
     <aside

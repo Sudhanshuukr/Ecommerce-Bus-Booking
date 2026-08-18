@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Container, Section } from '@/components/layout';
 import { HeroContent } from './HeroContent';
 import { HeroVisual } from './HeroVisual';
-import { SearchPanel } from '@/features/search';
+import { SearchPanel } from '@/features/search/components/SearchPanel';
 
 export function Hero() {
   return (

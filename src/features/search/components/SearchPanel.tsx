@@ -95,7 +95,7 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
                 type="origin"
                 value={query.origin}
                 onChange={setOrigin}
-                placeholder="e.g. New York, NY"
+                placeholder="e.g. Delhi"
                 error={errors.origin}
               />
             </div>
@@ -112,10 +112,11 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
                 type="destination"
                 value={query.destination}
                 onChange={setDestination}
-                placeholder="e.g. Boston, MA"
+                placeholder="e.g. Lucknow"
                 error={errors.destination}
               />
             </div>
+
           </div>
 
           {/* Date Picker Group (Departure & Return) */}

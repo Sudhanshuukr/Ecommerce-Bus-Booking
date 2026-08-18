@@ -5,3 +5,10 @@ export interface WhyUsFeature {
   iconName: 'ShieldCheck' | 'Clock' | 'Ticket' | 'Headphones' | 'Sparkles' | 'CreditCard' | 'RefreshCw' | 'MapPin';
   badgeText?: string;
 }
+
+export interface WhyUsStat {
+  id: string;
+  label: string;
+  value: string;
+}
+

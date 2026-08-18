@@ -9,12 +9,12 @@ export interface TestimonialCardProps {
 }
 
 export function TestimonialCard({ testimonial, className }: TestimonialCardProps) {
-  const { name, role, initials, avatarUrl, route, rating, reviewText, verified } = testimonial;
+  const { name, role, initials, avatarUrl, route, rating, reviewText, verified, date } = testimonial;
 
   return (
     <article
       className={cn(
-        'group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-md dark:border-slate-800 dark:bg-slate-900',
+        'group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md dark:border-slate-800 dark:bg-slate-900',
         className
       )}
     >
@@ -48,7 +48,7 @@ export function TestimonialCard({ testimonial, className }: TestimonialCardProps
       </div>
 
       {/* Footer Info: User & Route */}
-      <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/60 space-y-3">
+      <div className="mt-6 space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800/60">
         {/* Route Badge */}
         <div className="inline-flex items-center space-x-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           <span>{route.from}</span>
@@ -73,22 +73,24 @@ export function TestimonialCard({ testimonial, className }: TestimonialCardProps
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-1.5">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+              <h4 className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
                 {name}
               </h4>
               {verified && (
                 <CheckCircle2
-                  className="h-4 w-4 text-emerald-500 shrink-0"
-                  aria-label="Verified Customer"
+                  className="h-4 w-4 shrink-0 text-emerald-500"
+                  aria-label="Demo Verified Traveler"
                 />
               )}
             </div>
-            {role && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{role}</p>
-            )}
+            <div className="mt-0.5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              {role && <span className="truncate">{role}</span>}
+              {date && <span className="shrink-0 text-[11px] opacity-75">{date}</span>}
+            </div>
           </div>
         </div>
       </div>
     </article>
   );
 }
+

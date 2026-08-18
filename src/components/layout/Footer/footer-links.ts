@@ -21,20 +21,17 @@ export const quickLinksGroup: FooterLinkGroup = {
   title: 'Quick Links',
   links: [
     { label: 'Home', href: '/' },
-    { label: 'Routes', href: '/routes' },
-    { label: 'Operators', href: '/operators' },
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Search Buses', href: '/search' },
+    { label: 'Popular Routes', href: '/routes' },
   ],
 };
 
 export const supportLinksGroup: FooterLinkGroup = {
-  title: 'Support',
+  title: 'Explore & Book',
   links: [
-    { label: 'Help Center', href: '/help' },
-    { label: 'FAQ', href: '/faq' },
-    { label: 'Terms', href: '/terms' },
-    { label: 'Privacy', href: '/privacy' },
+    { label: 'Find Tickets', href: '/search' },
+    { label: 'Featured Routes', href: '/routes' },
+    { label: 'Book Travel', href: '/' },
   ],
 };
 
@@ -44,3 +41,4 @@ export const socialLinksData: SocialLink[] = [
   { label: 'Instagram', href: 'https://instagram.com', icon: Instagram },
   { label: 'LinkedIn', href: 'https://linkedin.com', icon: Linkedin },
 ];
+

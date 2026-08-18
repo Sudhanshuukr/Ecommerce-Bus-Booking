@@ -5,8 +5,9 @@ import {
   PopularRoutesSection,
   WhyUsSection,
   TestimonialsSection,
+  CtaSection,
 } from '@/features/home';
-import { BusGrid } from '@/features/bus';
+import { BusGrid } from '@/features/bus/components/BusGrid';
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <PopularRoutesSection />
       <WhyUsSection />
       <TestimonialsSection />
+      <CtaSection />
       <Section spacing="lg" className="bg-slate-50/50 py-12 md:py-16">
         <Container>
           <BusGrid />
@@ -24,4 +26,5 @@ export default function Home() {
     </AppShell>
   );
 }
+
 

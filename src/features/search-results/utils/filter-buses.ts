@@ -1,4 +1,5 @@
-import { BusSchedule } from '@/features/bus';
+import { BusSchedule } from '@/features/bus/types/bus';
+import { findLocationByQuery } from '@/features/search/constants/locations';
 import { ParsedSearchQuery } from '../types/search-query';
 import { FilterState, TimeWindow } from '../types/search-filter';
 import { parseTimeToMinutes } from './sort-buses';
@@ -26,6 +27,41 @@ function matchesTimeWindow(timeInMinutes: number, selectedWindows: TimeWindow[])
 }
 
 /**
+ * Robustly matches schedule origin/destination string against search query.
+ * Supports city names, airport/station codes (DEL, LKO, JPR), and terminal names.
+ */
+function matchesLocation(scheduleLocation: string, queryStr: string): boolean {
+
+  if (!queryStr) return true;
+  const q = queryStr.trim().toLowerCase();
+  const schedLoc = scheduleLocation.trim().toLowerCase();
+
+  // Direct substring match
+  if (schedLoc.includes(q) || q.includes(schedLoc)) {
+    return true;
+  }
+
+  // Lookup in LOCATION_DATASET via findLocationByQuery
+  const locObj = findLocationByQuery(queryStr);
+  if (locObj) {
+    const city = locObj.city.toLowerCase();
+    const code = locObj.code.toLowerCase();
+    const name = locObj.name.toLowerCase();
+
+    return (
+      schedLoc.includes(city) ||
+      city.includes(schedLoc) ||
+      schedLoc.includes(code) ||
+      code.includes(schedLoc) ||
+      schedLoc.includes(name) ||
+      name.includes(schedLoc)
+    );
+  }
+
+  return false;
+}
+
+/**
  * Pure function filtering bus schedules based on search query AND filter criteria.
  */
 export function filterBusSchedules(
@@ -33,8 +69,8 @@ export function filterBusSchedules(
   query: ParsedSearchQuery,
   filterState?: Partial<FilterState>
 ): BusSchedule[] {
-  const originQuery = query.origin.trim().toLowerCase();
-  const destinationQuery = query.destination.trim().toLowerCase();
+  const originQuery = query.origin;
+  const destinationQuery = query.destination;
 
   const priceMax = filterState?.priceMax ?? Number.MAX_SAFE_INTEGER;
   const selectedBusTypes = filterState?.busTypes ?? [];
@@ -43,21 +79,15 @@ export function filterBusSchedules(
 
   return schedules.filter((schedule) => {
     // 1. Origin Filter
-    if (originQuery) {
-      const scheduleOrigin = schedule.route.origin.toLowerCase();
-      const isOriginMatch =
-        scheduleOrigin.includes(originQuery) || originQuery.includes(scheduleOrigin);
-      if (!isOriginMatch) return false;
+    if (originQuery && !matchesLocation(schedule.route.origin, originQuery)) {
+      return false;
     }
 
     // 2. Destination Filter
-    if (destinationQuery) {
-      const scheduleDestination = schedule.route.destination.toLowerCase();
-      const isDestinationMatch =
-        scheduleDestination.includes(destinationQuery) ||
-        destinationQuery.includes(scheduleDestination);
-      if (!isDestinationMatch) return false;
+    if (destinationQuery && !matchesLocation(schedule.route.destination, destinationQuery)) {
+      return false;
     }
+
 
     // 3. Passenger Capacity Filter
     if (query.totalPassengers > 0 && schedule.availableSeats < query.totalPassengers) {

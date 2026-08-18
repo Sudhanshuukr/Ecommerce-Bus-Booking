@@ -5,3 +5,7 @@ export * from './BoardingDroppingSelector';
 export * from './FareSummaryCard';
 export * from './BusDetailsHeader';
 export * from './BookingContainer';
+export * from './BookingStepper';
+export * from './PassengerForm';
+export * from './BookingReview';
+export * from './BookingConfirmation';

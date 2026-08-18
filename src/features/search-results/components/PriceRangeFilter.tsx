@@ -13,10 +13,10 @@ export interface PriceRangeFilterProps {
 
 export const PriceRangeFilter = React.memo<PriceRangeFilterProps>(function PriceRangeFilter({
   priceMax,
-  minPrice = 20,
-  maxPrice = 100,
+  minPrice = 200,
+  maxPrice = 3000,
   onChange,
-  currency = '$',
+  currency = '₹',
 }) {
   return (
     <div className="space-y-3">
@@ -35,7 +35,7 @@ export const PriceRangeFilter = React.memo<PriceRangeFilterProps>(function Price
           type="range"
           min={minPrice}
           max={maxPrice}
-          step={5}
+          step={50}
           value={priceMax}
           onChange={(e) => onChange(parseInt(e.target.value, 10))}
           aria-label={`Maximum price up to ${currency}${priceMax}`}
@@ -50,3 +50,4 @@ export const PriceRangeFilter = React.memo<PriceRangeFilterProps>(function Price
     </div>
   );
 });
+

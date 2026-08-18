@@ -190,12 +190,12 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={cn(
-            'pl-10 pr-14 h-12 text-sm font-medium text-slate-900 bg-white placeholder:text-slate-400 border-border focus-visible:ring-primary/20',
+            'pl-10 pr-16 h-12 text-sm font-medium text-slate-900 bg-white placeholder:text-slate-400 border-border focus-visible:ring-2 focus-visible:ring-primary/20',
             error && 'border-destructive focus-visible:ring-destructive/20 focus-visible:border-destructive'
           )}
         />
 
-        <div className="absolute right-3 flex items-center space-x-1.5">
+        <div className="absolute right-3 flex items-center space-x-1.5 z-10">
           {inputValue && (
             <button
               type="button"
@@ -208,7 +208,7 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
           )}
 
           {value && (
-            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300 pointer-events-none">
+            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300 pointer-events-none shrink-0">
               {value.code}
             </span>
           )}
@@ -228,7 +228,7 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
           id={`${id}-suggestions-list`}
           role="listbox"
           aria-label={`${label} station options`}
-          className="absolute top-full left-0 z-40 mt-1.5 max-h-64 w-full overflow-auto rounded-xl border border-border bg-white p-1.5 shadow-modal transition-all duration-normal animate-in fade-in-50 zoom-in-95"
+          className="absolute top-full left-0 z-50 mt-2 max-h-72 w-full min-w-[280px] sm:min-w-[320px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-border/80 bg-white p-1.5 shadow-modal transition-all duration-normal animate-in fade-in-50 zoom-in-95"
         >
           {suggestions.length === 0 ? (
             <li className="px-3 py-3 text-center text-xs text-muted-foreground">
@@ -251,32 +251,34 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
                   }}
                   onMouseEnter={() => setHighlightedIndex(idx)}
                   className={cn(
-                    'flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-xs transition-colors duration-normal',
+                    'flex cursor-pointer items-center justify-between gap-2.5 rounded-lg px-3 py-2 text-xs transition-colors duration-fast',
                     isHighlighted ? 'bg-primary/10 text-primary font-semibold' : 'text-slate-700 hover:bg-slate-50',
                     isSelected && !isHighlighted && 'bg-slate-100 font-semibold text-slate-900'
                   )}
                 >
-                  <div className="flex items-center space-x-2.5 min-w-0">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    <div className="truncate">
-                      <div className="font-semibold text-slate-900 truncate">
+                  <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                      <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-slate-900 truncate text-xs sm:text-sm">
                         {loc.city}, {loc.state}
                       </div>
                       <div className="text-[11px] text-muted-foreground truncate">{loc.name}</div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-1.5 shrink-0 pl-2">
+                  <div className="flex items-center space-x-1.5 shrink-0 pl-1">
                     {loc.popular && (
-                      <span className="inline-flex items-center space-x-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
-                        <Sparkles className="h-2.5 w-2.5" />
+                      <span className="inline-flex items-center space-x-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                        <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />
                         <span>Popular</span>
                       </span>
                     )}
-                    <span className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                    <span className="rounded-md border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                       {loc.code}
                     </span>
-                    {isSelected && <Check className="h-3.5 w-3.5 text-primary ml-1" />}
+                    {isSelected && <Check className="h-3.5 w-3.5 text-primary ml-1 shrink-0" aria-hidden="true" />}
                   </div>
                 </li>
               );
@@ -284,6 +286,7 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
           )}
         </ul>
       )}
+
     </div>
   );
 });

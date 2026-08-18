@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { fontInter, fontPlusJakarta } from '@/lib/fonts';
 import { siteConfig } from '@/config/site';
+import { AuthProvider } from '@/features/auth/context/AuthProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function RootLayout({
       className={`${fontPlusJakarta.variable} ${fontInter.variable}`}
     >
       <body className="min-h-screen bg-background font-body text-foreground antialiased">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

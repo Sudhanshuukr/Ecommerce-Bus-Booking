@@ -1,4 +1,4 @@
-import { BusSchedule } from '@/features/bus';
+import { BusSchedule } from '@/features/bus/types/bus';
 import { SortOption } from '../types/search-filter';
 
 /**
@@ -31,6 +31,26 @@ export function parseDurationToMinutes(durationStr: string): number {
   const mins = minsMatch ? parseInt(minsMatch[1], 10) : 0;
 
   return hours * 60 + mins;
+}
+
+/**
+ * Calculates formatted duration string (e.g. "8h 00m") from departure and arrival time strings.
+ * Accurately handles overnight journeys where arrival time is on the next day.
+ */
+export function calculateJourneyDuration(departureTime: string, arrivalTime: string): string {
+  const depMins = parseTimeToMinutes(departureTime);
+  let arrMins = parseTimeToMinutes(arrivalTime);
+
+  // Overnight rollover
+  if (arrMins < depMins) {
+    arrMins += 24 * 60;
+  }
+
+  const diffMins = arrMins - depMins;
+  const hours = Math.floor(diffMins / 60);
+  const mins = diffMins % 60;
+
+  return `${hours}h ${mins.toString().padStart(2, '0')}m`;
 }
 
 /**

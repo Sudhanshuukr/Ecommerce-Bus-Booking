@@ -9,7 +9,7 @@ export function parseFilterStateFromUrl(searchParams: {
   const timeWindowsParam = searchParams.get('timeWindows');
   const sortByParam = searchParams.get('sortBy');
 
-  const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : 100;
+  const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : 3000;
   const busTypes = busTypesParam ? busTypesParam.split(',').filter(Boolean) : [];
   const amenities = amenitiesParam ? amenitiesParam.split(',').filter(Boolean) : [];
   const timeWindows = timeWindowsParam
@@ -45,12 +45,13 @@ export function createFilterQueryString(
   const params = new URLSearchParams(currentUrlSearchParams.toString());
 
   if (updates.priceMax !== undefined) {
-    if (updates.priceMax >= 100) {
+    if (updates.priceMax >= 3000) {
       params.delete('priceMax');
     } else {
       params.set('priceMax', String(updates.priceMax));
     }
   }
+
 
   if (updates.busTypes !== undefined) {
     if (updates.busTypes.length === 0) {

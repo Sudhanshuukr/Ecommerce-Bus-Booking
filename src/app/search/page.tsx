@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 import { AppShell, Container, Section } from '@/components/layout';
-import { SearchResultsContainer } from '@/features/search-results';
+import { SearchResultsContainer } from '@/features/search-results/components/SearchResultsContainer';
 
 export const metadata = {
   title: 'Search Bus Routes | Bus Booking Platform',

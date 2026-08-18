@@ -1,31 +1,41 @@
-import { WhyUsFeature } from '../types/why-us';
+import { WhyUsFeature, WhyUsStat } from '../types/why-us';
 
 export const MOCK_WHY_US_FEATURES: WhyUsFeature[] = [
   {
     id: 'feature-1',
-    title: 'Verified Operators',
-    description: 'Travel only with top-rated, background-checked bus partners offering premium safety standards.',
-    iconName: 'ShieldCheck',
-    badgeText: 'Top Safety',
+    title: 'Easy & Fast Booking',
+    description: 'Rapid seat reservation experience in under 60 seconds with instant mobile e-tickets.',
+    iconName: 'Ticket',
+    badgeText: 'Instant Booking',
   },
   {
     id: 'feature-2',
-    title: 'Instant E-Tickets & Refunds',
-    description: 'Get instant booking confirmations with QR tickets and instant automated hassle-free refunds.',
-    iconName: 'Ticket',
-    badgeText: 'Instant',
+    title: 'Trusted Bus Operators',
+    description: 'Travel with reliable, quality-focused bus partners offering verified safety and hygiene standards.',
+    iconName: 'ShieldCheck',
+    badgeText: 'Verified Partners',
   },
   {
     id: 'feature-3',
-    title: 'Live Bus Tracking',
-    description: 'Track your bus real-time on live maps and share your journey location with family & friends.',
-    iconName: 'MapPin',
+    title: 'Secure & Flexible Payments',
+    description: 'Protected by bank-grade encryption with multi-option payment methods and hassle-free refund handling.',
+    iconName: 'CreditCard',
+    badgeText: '100% Encrypted',
   },
   {
     id: 'feature-4',
-    title: '24/7 Priority Customer Care',
-    description: 'Our dedicated support team is available around the clock to assist you before, during, and after trip.',
+    title: 'Reliable Customer Support',
+    description: 'Our dedicated support team is available 24/7 to assist you before, during, and after your trip.',
     iconName: 'Headphones',
-    badgeText: '24/7 Support',
+    badgeText: '24/7 Assistance',
   },
 ];
+
+// Placeholder/Demo marketing statistics (frontend static data)
+export const MOCK_WHY_US_STATS: WhyUsStat[] = [
+  { id: 'stat-1', value: '1M+', label: 'Happy Passengers (Demo)' },
+  { id: 'stat-2', value: '500+', label: 'Verified Operators (Demo)' },
+  { id: 'stat-3', value: '99.8%', label: 'On-Time Rate (Demo)' },
+  { id: 'stat-4', value: '24/7', label: 'Dedicated Support (Demo)' },
+];
+

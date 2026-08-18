@@ -72,11 +72,12 @@ export function buildSearchParamsFromQuery(query: SearchQuery): URLSearchParams 
   const params = new URLSearchParams();
 
   if (query.origin) {
-    params.set('origin', query.origin.code || query.origin.city);
+    params.set('origin', query.origin.city);
   }
   if (query.destination) {
-    params.set('destination', query.destination.code || query.destination.city);
+    params.set('destination', query.destination.city);
   }
+
   if (query.departureDate) {
     params.set('departureDate', query.departureDate);
   }

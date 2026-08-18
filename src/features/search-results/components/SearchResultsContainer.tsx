@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { SearchPanel, TripType } from '@/features/search';
-import { BusGrid, MOCK_BUS_SCHEDULES } from '@/features/bus';
+import { SearchPanel } from '@/features/search/components/SearchPanel';
+import { TripType } from '@/features/search/types/search-form';
+import { BusGrid } from '@/features/bus/components/BusGrid';
+import { BusSchedule } from '@/features/bus/types/bus';
 import { SearchResultsHeader } from './SearchResultsHeader';
 import { FilterSidebar } from './FilterSidebar';
 import { ParsedSearchQuery } from '../types/search-query';
@@ -19,6 +21,10 @@ export function SearchResultsContainer() {
 
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = React.useState(false);
+
+  const [schedules, setSchedules] = React.useState<BusSchedule[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   // 1. Parse URL Base Search Query
   const parsedQuery = React.useMemo<ParsedSearchQuery>(() => {
@@ -44,13 +50,62 @@ export function SearchResultsContainer() {
     };
   }, [searchParams]);
 
-  // 2. Parse URL Filter State (Single source of truth)
+  // 2. Fetch live schedules from GET /api/schedules
+  const fetchSchedules = React.useCallback(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    setError(null);
+
+    const queryParams = new URLSearchParams();
+    if (parsedQuery.origin) queryParams.set('origin', parsedQuery.origin);
+    if (parsedQuery.destination) queryParams.set('destination', parsedQuery.destination);
+    if (parsedQuery.departureDate) queryParams.set('date', parsedQuery.departureDate);
+
+    const url = `/api/schedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch schedules (HTTP ${res.status})`);
+        }
+        return res.json();
+      })
+      .then((json) => {
+        if (!isMounted) return;
+        if (json.success && Array.isArray(json.data)) {
+          setSchedules(json.data);
+        } else {
+          setError(json.error?.message || 'Unable to load schedules.');
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('[Search API Error]:', err);
+        setError(
+          'Unable to connect to the schedule service. Please check your network connection and try again.'
+        );
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [parsedQuery.origin, parsedQuery.destination, parsedQuery.departureDate]);
+
+  React.useEffect(() => {
+    const cleanup = fetchSchedules();
+    return cleanup;
+  }, [fetchSchedules]);
+
+  // 3. Parse URL Filter State (Single source of truth)
   const filterState = React.useMemo<FilterState>(
     () => parseFilterStateFromUrl(searchParams),
     [searchParams]
   );
 
-  // 3. Update URL with new filter state
+  // 4. Update URL with new filter state
   const handleFilterChange = React.useCallback(
     (updates: Partial<FilterState>) => {
       const newQueryString = createFilterQueryString(
@@ -62,7 +117,7 @@ export function SearchResultsContainer() {
     [searchParams, pathname, router]
   );
 
-  // 4. Reset Filters handler
+  // 5. Reset Filters handler
   const handleResetFilters = React.useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete('priceMax');
@@ -73,13 +128,11 @@ export function SearchResultsContainer() {
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [searchParams, pathname, router]);
 
-  // 5. Execute Pure Filter & Sort Pipeline
+  // 6. Execute Pure Filter & Sort Pipeline
   const finalSchedules = React.useMemo(() => {
-    const filtered = filterBusSchedules(MOCK_BUS_SCHEDULES, parsedQuery, filterState);
+    const filtered = filterBusSchedules(schedules, parsedQuery, filterState);
     return sortBusSchedules(filtered, filterState.sortBy);
-  }, [parsedQuery, filterState]);
-
-
+  }, [schedules, parsedQuery, filterState]);
 
   return (
     <div className="space-y-6">
@@ -151,15 +204,34 @@ export function SearchResultsContainer() {
 
         {/* Bus Results Grid Area */}
         <div className="flex-1 w-full">
-          <BusGrid
-            schedules={finalSchedules}
-            title={
-              parsedQuery.origin || parsedQuery.destination
-                ? `Buses from ${parsedQuery.origin || 'Any'} to ${parsedQuery.destination || 'Any'}`
-                : 'Available Bus Schedules'
-            }
-            subtitle={`Showing ${finalSchedules.length} schedules matching your search and filter criteria`}
-          />
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-500 text-sm font-medium space-y-3 rounded-2xl border border-slate-100 bg-white p-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
+              <p>Fetching bus schedules from database...</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50/80 p-8 text-center text-red-800 space-y-4">
+              <p className="font-semibold text-sm">{error}</p>
+              <button
+                type="button"
+                onClick={() => fetchSchedules()}
+                className="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 transition-colors"
+              >
+                Retry Search
+              </button>
+            </div>
+          ) : (
+            <BusGrid
+              schedules={finalSchedules}
+              onResetFilters={handleResetFilters}
+              title={
+                parsedQuery.origin || parsedQuery.destination
+                  ? `Buses from ${parsedQuery.origin || 'Any'} to ${parsedQuery.destination || 'Any'}`
+                  : 'Available Bus Schedules'
+              }
+              subtitle={`Showing ${finalSchedules.length} schedules matching your search and filter criteria`}
+            />
+          )}
         </div>
       </div>
     </div>

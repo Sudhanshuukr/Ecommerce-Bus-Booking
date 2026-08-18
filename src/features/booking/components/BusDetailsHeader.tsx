@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Star, ArrowRight, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BusSchedule } from '@/features/bus';
+import { BusSchedule } from '@/features/bus/types/bus';
 
 export interface BusDetailsHeaderProps {
   schedule: BusSchedule;

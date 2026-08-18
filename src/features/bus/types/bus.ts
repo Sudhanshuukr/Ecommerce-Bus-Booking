@@ -1,3 +1,5 @@
+import { BoardingDroppingPoint, Seat } from '@/features/booking/types/seat';
+
 export interface BusOperator {
   id: string;
   name: string;
@@ -25,4 +27,7 @@ export interface BusSchedule {
   totalSeats: number;
   amenities: string[];
   badge?: 'Fastest' | 'Cheapest' | 'Top Rated' | 'Popular';
+  boardingPoints?: BoardingDroppingPoint[];
+  droppingPoints?: BoardingDroppingPoint[];
+  seats?: Seat[];
 }
