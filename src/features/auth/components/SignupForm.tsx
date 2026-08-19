@@ -81,6 +81,7 @@ export function SignupForm() {
               id="fullName"
               type="text"
               required
+              maxLength={100}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Rahul Sharma"
@@ -99,6 +100,7 @@ export function SignupForm() {
               id="email"
               type="email"
               required
+              maxLength={254}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@example.com"
@@ -117,6 +119,7 @@ export function SignupForm() {
               id="password"
               type="password"
               required
+              maxLength={128}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimum 6 characters"
@@ -135,6 +138,7 @@ export function SignupForm() {
               id="confirmPassword"
               type="password"
               required
+              maxLength={128}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter password"

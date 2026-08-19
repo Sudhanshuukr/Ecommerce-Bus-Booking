@@ -44,7 +44,11 @@ export const SeatItem = React.memo<SeatItemProps>(function SeatItem({
       disabled={isDisabled}
       aria-pressed={isSelected}
       aria-disabled={isDisabled}
-      aria-label={`Seat ${label}, $${price}, ${statusText}`}
+      aria-label={
+        isDisabled
+          ? `Seat ${label}, ${statusText.toLowerCase()}, ${type}`
+          : `Seat ${label}, ${statusText.toLowerCase()}, ${type}, ₹${price}`
+      }
       className={cn(
         'group relative flex flex-col items-center justify-center rounded-xl transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
         type === 'sleeper' ? 'h-20 w-12' : 'h-11 w-11',

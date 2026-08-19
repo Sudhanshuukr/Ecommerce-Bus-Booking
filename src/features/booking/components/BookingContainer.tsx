@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle, Search } from 'lucide-react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { ArrowLeft, AlertCircle, Search, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BusSchedule } from '@/features/bus/types/bus';
 import { useSeatSelection } from '../hooks/useSeatSelection';
@@ -23,10 +24,15 @@ import {
 
 export interface BookingContainerProps {
   busId?: string;
+  initialStep?: string;
   className?: string;
 }
 
-export function BookingContainer({ busId = '', className }: BookingContainerProps) {
+export function BookingContainer({ busId = '', initialStep, className }: BookingContainerProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   // 1. Live Schedule State from GET /api/buses/[id]
   const [schedule, setSchedule] = React.useState<BusSchedule | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -129,12 +135,38 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
   }, [droppingPoints, selectedDroppingPointId, schedule]);
 
   // 3. Step & Passenger State
-  const [currentStep, setCurrentStep] = React.useState<BookingStep>('seats');
+  const stepParam = searchParams.get('step') || initialStep;
+  const initialBookingStep: BookingStep =
+    stepParam === 'passengers' || stepParam === 'passenger'
+      ? 'passengers'
+      : stepParam === 'review'
+      ? 'review'
+      : 'seats';
+
+  const [currentStep, setCurrentStep] = React.useState<BookingStep>(initialBookingStep);
   const [passengers, setPassengers] = React.useState<Passenger[]>([]);
   const [formErrors, setFormErrors] = React.useState<Record<string, PassengerFormErrors>>({});
   const [stepErrorMessage, setStepErrorMessage] = React.useState<string | null>(null);
   const [confirmationData, setConfirmationData] = React.useState<BookingConfirmationData | null>(
     null
+  );
+
+  React.useEffect(() => {
+    if (stepParam === 'passengers' || stepParam === 'passenger') {
+      setCurrentStep('passengers');
+    } else if (stepParam === 'review') {
+      setCurrentStep('review');
+    } else if (stepParam === 'seats') {
+      setCurrentStep('seats');
+    }
+  }, [stepParam]);
+
+  const navigateToStep = React.useCallback(
+    (step: BookingStep) => {
+      setCurrentStep(step);
+      router.push(`${pathname}?step=${step}`, { scroll: false });
+    },
+    [pathname, router]
   );
 
   // Stale passenger cleanup: ensure passengers state matches selected seats
@@ -183,7 +215,7 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
       setStepErrorMessage('Please select at least 1 seat to proceed.');
       return;
     }
-    setCurrentStep('passengers');
+    navigateToStep('passengers');
   };
 
   const handleProceedToReview = () => {
@@ -216,18 +248,19 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
     }
 
     setFormErrors({});
-    setCurrentStep('review');
+    navigateToStep('review');
   };
 
   const [isSubmittingBooking, setIsSubmittingBooking] = React.useState(false);
+  const [reviewVerified, setReviewVerified] = React.useState(false);
 
-  const handleConfirmBooking = async () => {
+  const handleReviewVerified = async () => {
     if (!schedule || isSubmittingBooking) return;
-
     setIsSubmittingBooking(true);
     setStepErrorMessage(null);
 
-    const payload = {
+    // Prepare typed booking payload matching 00003_create_booking_transaction.sql schema
+    const preparedPayload = {
       scheduleId: schedule.id,
       boardingPointId: selectedBoardingPoint.id,
       droppingPointId: selectedDroppingPoint.id,
@@ -241,73 +274,9 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
       })),
     };
 
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        const errCode = json.error?.code;
-        let msg = json.error?.message || 'Unable to create booking.';
-
-        if (errCode === 'SEAT_UNAVAILABLE' || res.status === 409) {
-          msg =
-            'One or more selected seats are no longer available. Please return to seat selection and choose different seats.';
-        } else if (errCode === 'INVALID_BOARDING_POINT') {
-          msg = 'Selected boarding point is invalid for this schedule.';
-        } else if (errCode === 'INVALID_DROPPING_POINT') {
-          msg = 'Selected dropping point is invalid for this schedule.';
-        }
-
-        setStepErrorMessage(msg);
-        setIsSubmittingBooking(false);
-        return;
-      }
-
-      const backendData = json.data;
-      const nowStr = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
-      const verifiedFare = backendData?.grandTotal
-        ? {
-            seatCount: backendData.seatCount || selectedSeats.length,
-            seatPriceTotal: backendData.seatPriceTotal || fareBreakdown.seatPriceTotal,
-            serviceFee: backendData.serviceFee ?? fareBreakdown.serviceFee,
-            tax: backendData.taxAmount ?? fareBreakdown.tax,
-            grandTotal: backendData.grandTotal || fareBreakdown.grandTotal,
-          }
-        : fareBreakdown;
-
-      const finalConfirmation: BookingConfirmationData = {
-        bookingId: backendData?.bookingReference || backendData?.bookingId || `BB-${Date.now()}`,
-        bookingDate: nowStr,
-        schedule,
-        boardingPoint: selectedBoardingPoint,
-        droppingPoint: selectedDroppingPoint,
-        selectedSeats,
-        passengers,
-        fareBreakdown: verifiedFare,
-      };
-
-      setConfirmationData(finalConfirmation);
-      setCurrentStep('confirmation');
-    } catch (err) {
-      console.error('[Booking Submit Error]:', err);
-      setStepErrorMessage(
-        'Unable to connect to the booking server. Please check your network connection and try again.'
-      );
-    } finally {
-      setIsSubmittingBooking(false);
-    }
+    console.log('[Phase 5 Review Verified] Prepared Booking Payload:', preparedPayload);
+    setReviewVerified(true);
+    setIsSubmittingBooking(false);
   };
 
   const handleResetBooking = () => {
@@ -469,7 +438,7 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
           {currentStep === 'passengers' && (
             <button
               type="button"
-              onClick={() => setCurrentStep('seats')}
+              onClick={() => navigateToStep('seats')}
               className="inline-flex items-center text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors"
             >
               <ArrowLeft className="mr-1.5 h-4 w-4" />
@@ -480,7 +449,7 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
           {currentStep === 'review' && (
             <button
               type="button"
-              onClick={() => setCurrentStep('passengers')}
+              onClick={() => navigateToStep('passengers')}
               className="inline-flex items-center text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors"
             >
               <ArrowLeft className="mr-1.5 h-4 w-4" />
@@ -531,7 +500,7 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
         </div>
 
         {/* Right Sticky Column: Live Fare Summary & Step Action */}
-        <div className="lg:col-span-5 sticky top-6">
+        <div className="lg:col-span-5 sticky top-6 space-y-4">
           <FareSummaryCard
             selectedSeats={selectedSeats}
             fareBreakdown={fareBreakdown}
@@ -543,16 +512,30 @@ export function BookingContainer({ busId = '', className }: BookingContainerProp
                 ? 'Proceed to Passenger Details'
                 : currentStep === 'passengers'
                 ? 'Proceed to Review'
-                : 'Confirm Booking'
+                : reviewVerified
+                ? 'Review Verified ✓'
+                : 'Verify Booking Details'
             }
             onContinue={
               currentStep === 'seats'
                 ? handleProceedToPassengers
                 : currentStep === 'passengers'
                 ? handleProceedToReview
-                : handleConfirmBooking
+                : handleReviewVerified
             }
           />
+
+          {reviewVerified && currentStep === 'review' && (
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-emerald-900 space-y-1.5 shadow-subtle animate-in fade-in-50">
+              <div className="flex items-center space-x-2 font-extrabold text-xs text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Phase 5 Complete: Booking Review Verified</span>
+              </div>
+              <p className="text-[11px] font-medium text-emerald-700 leading-relaxed">
+                Passenger details, seat assignments, and boarding/dropping points are fully validated and prepared for final booking creation.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

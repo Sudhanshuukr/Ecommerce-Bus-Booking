@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS bus_seats (
     bus_id UUID NOT NULL REFERENCES buses(id) ON DELETE CASCADE,
     seat_label VARCHAR(10) NOT NULL,
     deck VARCHAR(10) NOT NULL DEFAULT 'lower' CHECK (deck IN ('lower', 'upper')),
-    row INTEGER NOT NULL CHECK (row > 0),
-    column INTEGER NOT NULL CHECK (column > 0),
+    "row" INTEGER NOT NULL CHECK ("row" > 0),
+    "column" INTEGER NOT NULL CHECK ("column" > 0),
     seat_type VARCHAR(10) NOT NULL DEFAULT 'seater' CHECK (seat_type IN ('seater', 'sleeper')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT bus_seats_bus_label_unique UNIQUE (bus_id, seat_label)
