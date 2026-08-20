@@ -55,29 +55,34 @@ export async function GET(
       .eq('id', scheduleId)
       .maybeSingle();
 
-    // 2. Fallback: handle legacy mock ID format (e.g., 'bus-1', 'bus-4') for test requests
-    if (!data && scheduleId.startsWith('bus-')) {
-      const busIndex = parseInt(scheduleId.replace('bus-', ''), 10);
-      if (!isNaN(busIndex) && busIndex >= 1 && busIndex <= 7) {
-        const targetId = `c0000000-0000-0000-0000-00000000000${busIndex}`;
-        const fallbackRes = await supabase
-          .from('schedules')
-          .select(`
-            *,
-            operators (*),
-            buses (*),
-            boarding_points (*),
-            dropping_points (*),
-            schedule_seats (
+    // 2. Fallback: handle legacy mock ID format (e.g., 'bus-1') or formatted schedule IDs
+    if (!data) {
+      const match = scheduleId.match(/(\d+)$/);
+      if (match) {
+        const busIndex = parseInt(match[1], 10);
+        if (!isNaN(busIndex) && busIndex >= 1 && busIndex <= 7) {
+          const targetId = `c0000000-0000-0000-0000-00000000000${busIndex}`;
+          const fallbackRes = await supabase
+            .from('schedules')
+            .select(`
               *,
-              bus_seats (*)
-            )
-          `)
-          .eq('id', targetId)
-          .maybeSingle();
+              operators (*),
+              buses (*),
+              boarding_points (*),
+              dropping_points (*),
+              schedule_seats (
+                *,
+                bus_seats (*)
+              )
+            `)
+            .eq('id', targetId)
+            .maybeSingle();
 
-        data = fallbackRes.data;
-        error = fallbackRes.error;
+          if (fallbackRes.data) {
+            data = fallbackRes.data;
+            error = fallbackRes.error;
+          }
+        }
       }
     }
 

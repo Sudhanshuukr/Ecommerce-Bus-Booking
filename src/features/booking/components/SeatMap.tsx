@@ -21,7 +21,7 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
     return seats.filter((s) => s.deck === activeDeck);
   }, [seats, activeDeck]);
 
-  // Group active deck seats by row
+  // Group active deck seats by row and sort numerically
   const rows = React.useMemo(() => {
     const rowMap = new Map<number, Seat[]>();
     activeSeats.forEach((seat) => {
@@ -58,7 +58,7 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
               activeDeck === 'lower' ? 'bg-white text-primary shadow-subtle font-bold' : 'text-slate-600 hover:text-slate-900'
             )}
           >
-            Lower Deck
+            Lower Deck ({seats.filter((s) => s.deck === 'lower').length})
           </button>
           <button
             type="button"
@@ -70,7 +70,7 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
               activeDeck === 'upper' ? 'bg-white text-primary shadow-subtle font-bold' : 'text-slate-600 hover:text-slate-900'
             )}
           >
-            Upper Deck
+            Upper Deck ({seats.filter((s) => s.deck === 'upper').length})
           </button>
         </div>
       </div>
@@ -78,10 +78,10 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
       {/* Seat Legend */}
       <SeatLegend />
 
-      {/* Bus Vehicle Graphic Layout */}
-      <div className="relative mx-auto w-full max-w-[320px] rounded-3xl border-2 border-slate-200 bg-slate-50/50 p-6 pt-10 shadow-inner">
+      {/* Consistent Bus Vehicle Graphic Layout Container */}
+      <div className="relative mx-auto w-full max-w-[320px] min-h-[660px] rounded-3xl border-2 border-slate-200 bg-slate-50/50 p-6 pt-7 shadow-inner flex flex-col justify-between">
         {/* Front Vehicle Header & Driver Wheel */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-6">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
           <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
             FRONT / DRIVER
           </div>
@@ -90,15 +90,19 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
           </div>
         </div>
 
-        {/* Seats Layout Grid */}
-        <div className="space-y-4">
+        {/* Seats Layout Grid - Spaced naturally over identical bus height */}
+        <div className="flex-1 flex flex-col justify-around py-2">
           {rows.map(([rowNum, rowSeats]) => {
-            const leftSeats = rowSeats.filter((s) => s.column <= 2);
-            const rightSeats = rowSeats.filter((s) => s.column >= 4);
+            const leftSeats = rowSeats
+              .filter((s) => s.column <= 2)
+              .sort((a, b) => a.column - b.column);
+            const rightSeats = rowSeats
+              .filter((s) => s.column >= 4)
+              .sort((a, b) => a.column - b.column);
 
             return (
-              <div key={rowNum} className="flex items-center justify-between">
-                {/* Left Side Seats (Columns 1, 2) */}
+              <div key={rowNum} className="flex items-center justify-between py-1">
+                {/* Left Side Seats (Columns 1, 2: A & B) */}
                 <div className="flex items-center space-x-2">
                   {leftSeats.map((seat) => (
                     <SeatItem
@@ -111,11 +115,11 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
                 </div>
 
                 {/* Gangway Aisle Gap Indicator */}
-                <div className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">
+                <div className="text-[10px] font-extrabold text-slate-300 uppercase tracking-tighter px-2 select-none">
                   AISLE
                 </div>
 
-                {/* Right Side Seats (Columns 4, 5) */}
+                {/* Right Side Seats (Columns 4, 5: C & D) */}
                 <div className="flex items-center space-x-2">
                   {rightSeats.map((seat) => (
                     <SeatItem
@@ -132,7 +136,7 @@ export function SeatMap({ seats, selectedSeatIds, onSelectSeat, className }: Sea
         </div>
 
         {/* Rear Exit Indicator */}
-        <div className="mt-8 text-center border-t border-slate-200 pt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+        <div className="mt-4 text-center border-t border-slate-200 pt-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 shrink-0">
           REAR OF BUS
         </div>
       </div>

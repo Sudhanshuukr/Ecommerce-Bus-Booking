@@ -26,4 +26,5 @@ export interface AuthUserSession {
     email: string;
   };
   profile: UserProfile;
+  token?: string;
 }

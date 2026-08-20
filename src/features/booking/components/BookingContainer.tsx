@@ -105,6 +105,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     toggleSeatSelection,
     setSelectedBoardingPointId,
     setSelectedDroppingPointId,
+    clearSelection,
     boardingPoints,
     droppingPoints,
   } = useSeatSelection({ schedule: schedule || undefined });
@@ -274,17 +275,70 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
       })),
     };
 
-    console.log('[Phase 5 Review Verified] Prepared Booking Payload:', preparedPayload);
-    setReviewVerified(true);
-    setIsSubmittingBooking(false);
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preparedPayload),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        const errorMsg =
+          json.error?.message || json.message || 'Failed to complete booking. Please try again.';
+        setStepErrorMessage(errorMsg);
+        setIsSubmittingBooking(false);
+        return;
+      }
+
+      const resData = json.data;
+      const confirmation: BookingConfirmationData = {
+        bookingId: resData.bookingReference || resData.bookingId || `BB-${Date.now()}`,
+        bookingDate: new Date().toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        schedule,
+        boardingPoint: selectedBoardingPoint,
+        droppingPoint: selectedDroppingPoint,
+        selectedSeats,
+        passengers,
+        fareBreakdown: {
+          seatCount: selectedSeats.length,
+          seatPriceTotal: resData.seatPriceTotal ?? fareBreakdown.seatPriceTotal,
+          serviceFee: resData.serviceFee ?? fareBreakdown.serviceFee,
+          tax: resData.taxAmount ?? fareBreakdown.tax,
+          grandTotal: resData.grandTotal ?? fareBreakdown.grandTotal,
+        },
+      };
+
+      setConfirmationData(confirmation);
+      setReviewVerified(true);
+      navigateToStep('confirmation');
+      fetchSchedule();
+    } catch (err) {
+      console.error('[Booking Submit Error]:', err);
+      setStepErrorMessage(
+        'Unable to connect to the booking server. Please check your network connection and try again.'
+      );
+    } finally {
+      setIsSubmittingBooking(false);
+    }
   };
 
   const handleResetBooking = () => {
+    clearSelection();
     setConfirmationData(null);
     setPassengers([]);
     setFormErrors({});
     setStepErrorMessage(null);
-    setCurrentStep('seats');
+    setReviewVerified(false);
+    navigateToStep('seats');
+    fetchSchedule();
   };
 
   // Loading state render guard
@@ -512,9 +566,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
                 ? 'Proceed to Passenger Details'
                 : currentStep === 'passengers'
                 ? 'Proceed to Review'
-                : reviewVerified
-                ? 'Review Verified ✓'
-                : 'Verify Booking Details'
+                : 'Confirm & Book Seats'
             }
             onContinue={
               currentStep === 'seats'
@@ -524,18 +576,6 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
                 : handleReviewVerified
             }
           />
-
-          {reviewVerified && currentStep === 'review' && (
-            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-emerald-900 space-y-1.5 shadow-subtle animate-in fade-in-50">
-              <div className="flex items-center space-x-2 font-extrabold text-xs text-emerald-800">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>Phase 5 Complete: Booking Review Verified</span>
-              </div>
-              <p className="text-[11px] font-medium text-emerald-700 leading-relaxed">
-                Passenger details, seat assignments, and boarding/dropping points are fully validated and prepared for final booking creation.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

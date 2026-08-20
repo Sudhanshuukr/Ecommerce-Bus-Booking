@@ -116,6 +116,7 @@ BEGIN
         v_seat_price_sum,
         v_service_fee,
         v_tax_amount,
+        v_grand_total,
         v_schedule.currency,
         'confirmed'
     ) RETURNING id INTO v_booking_id;

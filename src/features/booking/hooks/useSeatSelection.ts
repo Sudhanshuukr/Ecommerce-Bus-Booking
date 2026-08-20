@@ -86,6 +86,11 @@ export function useSeatSelection(options: UseSeatSelectionOptions = {}) {
     return calculateFare(selectedSeats);
   }, [selectedSeats]);
 
+  const clearSelection = React.useCallback(() => {
+    setSelectedSeatIds([]);
+    setErrorMessage(null);
+  }, []);
+
   return {
     seats,
     selectedSeatIds,
@@ -97,6 +102,8 @@ export function useSeatSelection(options: UseSeatSelectionOptions = {}) {
     toggleSeatSelection,
     setSelectedBoardingPointId,
     setSelectedDroppingPointId,
+    setSelectedSeatIds,
+    clearSelection,
     boardingPoints,
     droppingPoints,
   };

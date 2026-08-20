@@ -76,6 +76,7 @@ export async function getCurrentAuthUser(req?: Request): Promise<AuthUserSession
       email: user.email || '',
     },
     profile,
+    token,
   };
 }
 

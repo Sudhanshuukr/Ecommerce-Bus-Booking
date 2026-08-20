@@ -26,6 +26,54 @@ export const LOCATION_DATASET: LocationObject[] = [
     popular: true,
   },
   {
+    id: 'loc-agr-isbt',
+    name: 'ISBT Agra Expressway',
+    city: 'Agra',
+    state: 'UP',
+    code: 'AGR',
+    popular: true,
+  },
+  {
+    id: 'loc-ixc-sec43',
+    name: 'Sector 43 ISBT',
+    city: 'Chandigarh',
+    state: 'CH',
+    code: 'IXC',
+    popular: true,
+  },
+  {
+    id: 'loc-kulu-manali',
+    name: 'Private Bus Stand Manali',
+    city: 'Manali',
+    state: 'HP',
+    code: 'KUU',
+    popular: true,
+  },
+  {
+    id: 'loc-ded-isbt',
+    name: 'ISBT Dehradun',
+    city: 'Dehradun',
+    state: 'UK',
+    code: 'DED',
+    popular: true,
+  },
+  {
+    id: 'loc-vns-cantt',
+    name: 'Varanasi Cantt Bus Stand',
+    city: 'Varanasi',
+    state: 'UP',
+    code: 'VNS',
+    popular: true,
+  },
+  {
+    id: 'loc-atq-isbt',
+    name: 'Amritsar ISBT',
+    city: 'Amritsar',
+    state: 'PB',
+    code: 'ATQ',
+    popular: true,
+  },
+  {
     id: 'loc-bom-dadar',
     name: 'Dadar West Bus Terminal',
     city: 'Mumbai',
@@ -42,11 +90,27 @@ export const LOCATION_DATASET: LocationObject[] = [
     popular: true,
   },
   {
+    id: 'loc-goa-panjim',
+    name: 'Panjim KTC Bus Stand',
+    city: 'Goa',
+    state: 'GA',
+    code: 'GOI',
+    popular: true,
+  },
+  {
     id: 'loc-blr-majestic',
     name: 'Majestic Bus Station (KSRTC)',
     city: 'Bengaluru',
     state: 'KA',
     code: 'BLR',
+    popular: true,
+  },
+  {
+    id: 'loc-maa-cmbt',
+    name: 'Koyambedu CMBT',
+    city: 'Chennai',
+    state: 'TN',
+    code: 'MAA',
     popular: true,
   },
   {
@@ -58,20 +122,28 @@ export const LOCATION_DATASET: LocationObject[] = [
     popular: true,
   },
   {
-    id: 'loc-ixc-sec43',
-    name: 'Sector 43 ISBT',
-    city: 'Chandigarh',
-    state: 'CH',
-    code: 'IXC',
-    popular: true,
-  },
-  {
     id: 'loc-ccu-esplanade',
     name: 'Esplanade Bus Stand',
     city: 'Kolkata',
     state: 'WB',
     code: 'CCU',
-    popular: false,
+    popular: true,
+  },
+  {
+    id: 'loc-ixb-tenzing',
+    name: 'Tenzing Norgay Bus Terminus',
+    city: 'Siliguri',
+    state: 'WB',
+    code: 'IXB',
+    popular: true,
+  },
+  {
+    id: 'loc-rdp-citycenter',
+    name: 'City Center Bus Terminus',
+    city: 'Durgapur',
+    state: 'WB',
+    code: 'RDP',
+    popular: true,
   },
   {
     id: 'loc-amd-geetamandir',
@@ -81,17 +153,7 @@ export const LOCATION_DATASET: LocationObject[] = [
     code: 'AMD',
     popular: false,
   },
-  {
-    id: 'loc-ixb-tenzing',
-    name: 'Tenzing Norgay Bus Terminus',
-    city: 'Siliguri',
-    state: 'WB',
-    code: 'IXB',
-    popular: false,
-  },
 ];
-
-
 
 /**
  * Finds a LocationObject by ID, city, or station code.

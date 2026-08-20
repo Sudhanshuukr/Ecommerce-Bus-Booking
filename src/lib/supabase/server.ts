@@ -3,11 +3,7 @@ import { Database } from './database.types';
 
 let serverClientInstance: SupabaseClient<Database> | null = null;
 
-export function getSupabaseServerClient(): SupabaseClient<Database> {
-  if (serverClientInstance) {
-    return serverClientInstance;
-  }
-
+export function getSupabaseServerClient(token?: string): SupabaseClient<Database> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
@@ -19,11 +15,12 @@ export function getSupabaseServerClient(): SupabaseClient<Database> {
     );
   }
 
-  serverClientInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: false,
     },
+    global: {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    },
   });
-
-  return serverClientInstance;
 }
