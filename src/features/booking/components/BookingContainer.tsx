@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { ArrowLeft, AlertCircle, Search, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BusSchedule } from '@/features/bus/types/bus';
 import { useSeatSelection } from '../hooks/useSeatSelection';
@@ -32,6 +32,8 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const dateQuery = searchParams?.get('date') || searchParams?.get('departureDate');
+  const effectiveJourneyDate = dateQuery || new Date().toISOString().split('T')[0];
 
   // 1. Live Schedule State from GET /api/buses/[id]
   const [schedule, setSchedule] = React.useState<BusSchedule | null>(null);
@@ -49,7 +51,8 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     setIsLoading(true);
     setFetchError(null);
 
-    fetch(`/api/buses/${busId}`)
+    const apiUrl = `/api/buses/${busId}${dateQuery ? `?date=${encodeURIComponent(dateQuery)}` : ''}`;
+    fetch(apiUrl)
       .then((res) => {
         if (res.status === 404) {
           throw new Error('SCHEDULE_NOT_FOUND');
@@ -86,7 +89,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     return () => {
       isMounted = false;
     };
-  }, [busId]);
+  }, [busId, dateQuery]);
 
   React.useEffect(() => {
     const cleanup = fetchSchedule();
@@ -165,9 +168,11 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
   const navigateToStep = React.useCallback(
     (step: BookingStep) => {
       setCurrentStep(step);
-      router.push(`${pathname}?step=${step}`, { scroll: false });
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('step', step);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router]
+    [pathname, router, searchParams]
   );
 
   // Stale passenger cleanup: ensure passengers state matches selected seats
@@ -253,16 +258,17 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
   };
 
   const [isSubmittingBooking, setIsSubmittingBooking] = React.useState(false);
-  const [reviewVerified, setReviewVerified] = React.useState(false);
 
   const handleReviewVerified = async () => {
     if (!schedule || isSubmittingBooking) return;
     setIsSubmittingBooking(true);
     setStepErrorMessage(null);
 
-    // Prepare typed booking payload matching 00003_create_booking_transaction.sql schema
+    // Prepare typed booking payload matching date-aware create_booking schema
+    const effectiveJourneyDate = dateQuery || new Date().toISOString().split('T')[0];
     const preparedPayload = {
       scheduleId: schedule.id,
+      journeyDate: effectiveJourneyDate,
       boardingPointId: selectedBoardingPoint.id,
       droppingPointId: selectedDroppingPoint.id,
       passengers: passengers.map((p) => ({
@@ -302,6 +308,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
           day: 'numeric',
           year: 'numeric',
         }),
+        journeyDate: effectiveJourneyDate,
         schedule,
         boardingPoint: selectedBoardingPoint,
         droppingPoint: selectedDroppingPoint,
@@ -317,7 +324,6 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
       };
 
       setConfirmationData(confirmation);
-      setReviewVerified(true);
       navigateToStep('confirmation');
       fetchSchedule();
     } catch (err) {
@@ -336,7 +342,6 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     setPassengers([]);
     setFormErrors({});
     setStepErrorMessage(null);
-    setReviewVerified(false);
     navigateToStep('seats');
     fetchSchedule();
   };
@@ -344,14 +349,12 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
   // Loading state render guard
   if (isLoading) {
     return (
-      <div
-        className={cn(
-          'flex flex-col items-center justify-center py-20 text-slate-500 space-y-4 bg-white rounded-2xl border border-slate-100 p-8 shadow-subtle',
-          className
-        )}
-      >
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-        <p className="text-sm font-medium">Loading bus schedule and seat layout...</p>
+      <div className={cn('space-y-6 animate-pulse', className)}>
+        <div className="h-20 w-full bg-slate-200/80 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-96 bg-slate-200/80 rounded-2xl" />
+          <div className="h-64 bg-slate-200/80 rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -514,7 +517,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
           {/* STEP 1: Seats & Points */}
           {currentStep === 'seats' && (
             <>
-              <BusDetailsHeader schedule={schedule} />
+              <BusDetailsHeader schedule={schedule} journeyDate={effectiveJourneyDate} />
               <BoardingDroppingSelector
                 boardingPoints={boardingPoints}
                 droppingPoints={droppingPoints}
@@ -545,6 +548,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
           {currentStep === 'review' && (
             <BookingReview
               schedule={schedule}
+              journeyDate={effectiveJourneyDate}
               boardingPoint={selectedBoardingPoint}
               droppingPoint={selectedDroppingPoint}
               selectedSeats={selectedSeats}
@@ -578,6 +582,28 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
           />
         </div>
       </div>
+
+      {/* Mobile Sticky Seat Selection Footer Bar */}
+      {currentStep === 'seats' && selectedSeats.length > 0 && (
+        <div className="fixed bottom-[var(--mobile-bottom-nav-offset)] inset-x-0 z-20 border-t border-border/80 bg-surface/95 backdrop-blur-md p-3.5 shadow-modal md:hidden flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              {selectedSeats.length} {selectedSeats.length === 1 ? 'Seat' : 'Seats'} Selected
+            </div>
+            <div className="text-base font-extrabold text-slate-900">
+              {schedule.currency}{fareBreakdown.grandTotal}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleProceedToPassengers}
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-5 text-xs font-bold text-white shadow-subtle hover:bg-primary-600 active:scale-95 transition-all"
+          >
+            Continue
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+

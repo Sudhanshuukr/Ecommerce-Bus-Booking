@@ -169,6 +169,7 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
           ref={inputRef}
           id={id}
           type="text"
+          maxLength={60}
           role="combobox"
           aria-expanded={isOpen}
           aria-autocomplete="list"

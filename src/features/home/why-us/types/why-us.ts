@@ -2,7 +2,17 @@ export interface WhyUsFeature {
   id: string;
   title: string;
   description: string;
-  iconName: 'ShieldCheck' | 'Clock' | 'Ticket' | 'Headphones' | 'Sparkles' | 'CreditCard' | 'RefreshCw' | 'MapPin';
+  iconName:
+    | 'ShieldCheck'
+    | 'Clock'
+    | 'Ticket'
+    | 'Headphones'
+    | 'Sparkles'
+    | 'CreditCard'
+    | 'RefreshCw'
+    | 'MapPin'
+    | 'Armchair'
+    | 'TicketCheck';
   badgeText?: string;
 }
 
@@ -11,4 +21,3 @@ export interface WhyUsStat {
   label: string;
   value: string;
 }
-

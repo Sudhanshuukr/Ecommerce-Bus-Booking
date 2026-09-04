@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { mapSupabaseScheduleToBusSchedule } from '@/lib/supabase/mappers';
+import { mapSupabaseScheduleToBusSchedule, applyTravelDateToIso } from '@/lib/supabase/mappers';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { Database } from '@/lib/supabase/database.types';
 
@@ -25,11 +25,13 @@ interface RawScheduleResult extends ScheduleRow {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
+    const { searchParams } = new URL(request.url);
+    const dateParam = searchParams.get('date')?.trim();
 
     if (!id || typeof id !== 'string' || id.trim() === '') {
       return apiError('Bus schedule ID is required.', 'INVALID_ID', 400);
@@ -105,12 +107,53 @@ export async function GET(
 
     const row = data as unknown as RawScheduleResult;
 
-    const sortedBoarding = [...(row.boarding_points || [])].sort(
-      (a, b) => a.sequence_order - b.sequence_order
+    const adjustedDeparture = dateParam
+      ? applyTravelDateToIso(row.departure_time, dateParam)
+      : row.departure_time;
+
+    const adjustedArrival = dateParam
+      ? applyTravelDateToIso(row.arrival_time, dateParam)
+      : row.arrival_time;
+
+    const sortedBoarding = [...(row.boarding_points || [])]
+      .sort((a, b) => a.sequence_order - b.sequence_order)
+      .map((bp) => ({
+        ...bp,
+        time: dateParam ? applyTravelDateToIso(bp.time, dateParam) : bp.time,
+      }));
+
+    const sortedDropping = [...(row.dropping_points || [])]
+      .sort((a, b) => a.sequence_order - b.sequence_order)
+      .map((dp) => ({
+        ...dp,
+        time: dateParam ? applyTravelDateToIso(dp.time, dateParam) : dp.time,
+      }));
+
+    const targetDate = dateParam || new Date().toISOString().split('T')[0];
+
+    // Query active booked seat IDs for this schedule on the requested journey date via SECURITY DEFINER RPC
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: bookedSeatsData, error: rpcError } = await (supabase.rpc as any)(
+      'get_occupied_seat_ids',
+      {
+        p_schedule_id: row.id,
+        p_journey_date: targetDate,
+      }
     );
-    const sortedDropping = [...(row.dropping_points || [])].sort(
-      (a, b) => a.sequence_order - b.sequence_order
-    );
+
+    if (rpcError) {
+      console.warn(`[GET /api/buses/${scheduleId}] RPC get_occupied_seat_ids warning:`, rpcError.message);
+    }
+
+    const bookedSeatIdSet = new Set<string>();
+    if (Array.isArray(bookedSeatsData)) {
+      for (const item of bookedSeatsData) {
+        const seatId = typeof item === 'string' ? item : item?.schedule_seat_id;
+        if (seatId) {
+          bookedSeatIdSet.add(seatId);
+        }
+      }
+    }
 
     const sortedScheduleSeats = [...(row.schedule_seats || [])].sort((a, b) => {
       if (a.bus_seats.deck !== b.bus_seats.deck) {
@@ -122,16 +165,31 @@ export async function GET(
       return a.bus_seats.column - b.bus_seats.column;
     });
 
+    const dynamicScheduleSeats = sortedScheduleSeats.map((ss) => {
+      let dynamicStatus: 'available' | 'reserved' | 'occupied' = ss.status;
+      if (bookedSeatIdSet.has(ss.id)) {
+        dynamicStatus = 'occupied';
+      } else if (ss.status === 'occupied') {
+        dynamicStatus = 'available';
+      }
+      return {
+        ...ss,
+        status: dynamicStatus,
+        bus_seat: ss.bus_seats,
+      };
+    });
+
     const busSchedule = mapSupabaseScheduleToBusSchedule({
-      schedule: row,
+      schedule: {
+        ...row,
+        departure_time: adjustedDeparture,
+        arrival_time: adjustedArrival,
+      },
       operator: row.operators,
       bus: row.buses,
       boardingPoints: sortedBoarding,
       droppingPoints: sortedDropping,
-      scheduleSeats: sortedScheduleSeats.map((ss) => ({
-        ...ss,
-        bus_seat: ss.bus_seats,
-      })),
+      scheduleSeats: dynamicScheduleSeats,
     });
 
     return apiSuccess(busSchedule);

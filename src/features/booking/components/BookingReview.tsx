@@ -1,14 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { Bus, MapPin, Clock, User, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Bus, MapPin, Clock, User, ShieldCheck, ArrowRight, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BusSchedule } from '@/features/bus/types/bus';
+import { formatFullJourneyDate } from '@/lib/supabase/mappers';
 import { Seat, BoardingDroppingPoint } from '../types/seat';
 import { Passenger } from '../types/passenger';
 
 export interface BookingReviewProps {
   schedule: BusSchedule;
+  journeyDate?: string;
   boardingPoint: BoardingDroppingPoint;
   droppingPoint: BoardingDroppingPoint;
   selectedSeats: Seat[];
@@ -18,6 +20,7 @@ export interface BookingReviewProps {
 
 export const BookingReview = React.memo<BookingReviewProps>(function BookingReview({
   schedule,
+  journeyDate,
   boardingPoint,
   droppingPoint,
   selectedSeats,
@@ -41,10 +44,26 @@ export const BookingReview = React.memo<BookingReviewProps>(function BookingRevi
           </span>
         </div>
 
-        {/* Operator Info */}
-        <div>
-          <h3 className="text-lg font-black text-slate-900">{operator.name}</h3>
-          <p className="text-xs font-semibold text-slate-600 mt-0.5">{busType}</p>
+        {/* Operator & Journey Date Info */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-black text-slate-900">{operator.name}</h3>
+            <p className="text-xs font-semibold text-slate-600 mt-0.5">{busType}</p>
+          </div>
+
+          {journeyDate && (
+            <div className="inline-flex items-center space-x-2 bg-emerald-50 border border-emerald-200/80 rounded-xl px-3.5 py-2 text-xs self-start sm:self-auto">
+              <Calendar className="h-4 w-4 text-emerald-700 shrink-0" />
+              <div>
+                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                  Journey Date
+                </span>
+                <span className="font-extrabold text-slate-900">
+                  {formatFullJourneyDate(journeyDate)}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Timeline Grid */}

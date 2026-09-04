@@ -26,6 +26,7 @@ export type BookingStep = 'seats' | 'passengers' | 'review' | 'confirmation';
 export interface BookingConfirmationData {
   bookingId: string;
   bookingDate: string;
+  journeyDate?: string;
   schedule: BusSchedule;
   boardingPoint: BoardingDroppingPoint;
   droppingPoint: BoardingDroppingPoint;

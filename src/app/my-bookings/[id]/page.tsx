@@ -2,28 +2,24 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
   ArrowLeft,
   CheckCircle2,
-  Ticket,
-  Clock,
   Calendar,
+  Clock,
   MapPin,
-  User as UserIcon,
   Phone,
   Mail,
   Printer,
   AlertCircle,
   Bus,
-  ShieldCheck,
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import { AppShell } from '@/components/layout/AppShell';
 import { Container } from '@/components/layout/Container';
 import { useAuth } from '@/features/auth/context/AuthProvider';
 import { cn } from '@/lib/utils';
-import { formatTimeFromIso } from '@/lib/supabase/mappers';
+import { formatTimeFromIso, formatShortDateFromIso, formatFullJourneyDate, formatDurationMinutes } from '@/lib/supabase/mappers';
 
 interface PassengerJoined {
   id: string;
@@ -42,6 +38,7 @@ interface PassengerJoined {
 interface BookingDetailRecord {
   id: string;
   booking_reference: string;
+  journey_date?: string;
   seat_count: number;
   seat_price_total: number;
   service_fee: number;
@@ -82,8 +79,7 @@ interface BookingDetailRecord {
 
 export default function BookingDetailPage() {
   const params = useParams();
-  const router = useRouter();
-  const bookingId = (params?.id as string) || '';
+  const bookingId = params.id as string;
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [booking, setBooking] = React.useState<BookingDetailRecord | null>(null);
@@ -97,20 +93,19 @@ export default function BookingDetailPage() {
 
     try {
       const res = await fetch(`/api/my-bookings/${bookingId}`);
-      if (res.status === 404 || res.status === 403) {
-        setErrorStatus(404);
+      if (res.status === 401) {
         setIsLoading(false);
+        setErrorStatus(401);
         return;
       }
-      if (res.status === 401) {
-        setErrorStatus(401);
+      if (res.status === 404) {
         setIsLoading(false);
+        setErrorStatus(404);
         return;
       }
       if (!res.ok) {
         throw new Error(`HTTP_${res.status}`);
       }
-
       const json = await res.json();
       if (json.success && json.data) {
         setBooking(json.data);
@@ -118,7 +113,7 @@ export default function BookingDetailPage() {
         setErrorStatus(500);
       }
     } catch (err) {
-      console.error('[Booking Detail Error]:', err);
+      console.error('[Booking Detail Fetch Error]:', err);
       setErrorStatus(500);
     } finally {
       setIsLoading(false);
@@ -143,26 +138,23 @@ export default function BookingDetailPage() {
   // Loading skeleton state
   if (isLoading || authLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50/50">
-        <Header />
-        <main className="flex-1 py-12">
+      <AppShell className="bg-slate-50/50">
+        <div className="py-12">
           <Container className="max-w-4xl space-y-6 animate-pulse">
             <div className="h-6 w-36 bg-slate-200 rounded" />
             <div className="h-32 w-full bg-slate-200 rounded-2xl" />
             <div className="h-64 w-full bg-slate-200 rounded-2xl" />
           </Container>
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
   // Not Found / Ownership Mismatch State (404 Error)
   if (errorStatus === 404 || !booking) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50/50">
-        <Header />
-        <main className="flex-1 py-16">
+      <AppShell className="bg-slate-50/50">
+        <div className="py-16">
           <Container className="max-w-xl text-center space-y-6">
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 shadow-subtle space-y-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600 mx-auto">
@@ -183,9 +175,8 @@ export default function BookingDetailPage() {
               </div>
             </div>
           </Container>
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
@@ -203,20 +194,19 @@ export default function BookingDetailPage() {
     ? formatTimeFromIso(schedule.arrival_time)
     : 'N/A';
 
-  const depDate = schedule?.departure_time
-    ? new Date(schedule.departure_time).toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+  const journeyDateFormatted = booking.journey_date
+    ? formatFullJourneyDate(booking.journey_date)
+    : schedule?.departure_time
+    ? formatFullJourneyDate(schedule.departure_time)
     : 'N/A';
 
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50/50">
-      <Header />
+  const durationFormatted = schedule?.duration_minutes
+    ? formatDurationMinutes(schedule.duration_minutes)
+    : 'Direct Route';
 
-      <main className="flex-1 py-8 sm:py-12">
+  return (
+    <AppShell className="bg-slate-50/50">
+      <div className="py-8 sm:py-12">
         <Container className="max-w-4xl space-y-6">
           {/* Top Back Action Bar */}
           <div className="flex items-center justify-between">
@@ -231,178 +221,173 @@ export default function BookingDetailPage() {
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-300 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-subtle hover:bg-slate-50 transition-all"
+              className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-xs font-bold text-slate-700 shadow-subtle hover:bg-slate-50 transition-all"
             >
-              <Printer className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
+              <Printer className="mr-2 h-4 w-4" />
               <span>Print E-Ticket</span>
             </button>
           </div>
 
-          {/* Hero Status Card */}
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-6 sm:p-8 text-center shadow-subtle space-y-3">
+          {/* Ticket Confirmation Header Banner */}
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center shadow-subtle space-y-3">
             <div className="flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-soft">
-                <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-soft">
+                <CheckCircle2 className="h-7 w-7" />
               </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              {booking.displayStatus === 'completed'
-                ? 'Journey Completed'
-                : booking.displayStatus === 'cancelled'
-                ? 'Booking Cancelled'
-                : 'Confirmed E-Ticket'}
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              Official Bus E-Ticket
             </h1>
-            <p className="text-xs sm:text-sm font-medium text-slate-700 max-w-md mx-auto">
-              Present this official e-ticket and a valid photo ID during bus boarding.
-            </p>
 
-            {/* Reference Badge */}
-            <div className="pt-2">
-              <div className="inline-flex flex-col items-center justify-center rounded-xl bg-white border border-emerald-300 px-6 py-2.5 shadow-subtle">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                  Booking Reference Number
-                </span>
-                <span className="text-xl font-black text-slate-900 tracking-wide font-mono mt-0.5">
-                  {booking.booking_reference}
-                </span>
-              </div>
+            <div className="flex items-center justify-center space-x-3 pt-1">
+              <span className="font-mono text-xs font-black bg-white text-slate-900 px-3 py-1 rounded-lg border border-emerald-300 shadow-subtle">
+                PNR: {booking.booking_reference}
+              </span>
+              <span
+                className={cn(
+                  'text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider',
+                  booking.displayStatus === 'confirmed' &&
+                    'bg-emerald-100 text-emerald-800 border border-emerald-300',
+                  booking.displayStatus === 'completed' &&
+                    'bg-blue-100 text-blue-800 border border-blue-300',
+                  booking.displayStatus === 'cancelled' &&
+                    'bg-red-100 text-red-800 border border-red-300'
+                )}
+              >
+                {booking.displayStatus}
+              </span>
             </div>
           </div>
 
-          {/* Ticket Body Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-subtle space-y-6">
-            {/* Header & Total Paid */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          {/* Main Ticket Pass Card */}
+          <div className="rounded-2xl border border-border/80 bg-white p-5 sm:p-6 shadow-subtle space-y-6">
+            {/* Operator Details */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div className="flex items-center space-x-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary font-black">
-                  <Bus className="h-6 w-6" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-black">
+                  <Bus className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
+                  <h3 className="font-extrabold text-slate-900 text-base">
                     {operator?.name || 'SmartBus Express'}
-                  </h2>
+                  </h3>
                   <p className="text-xs font-semibold text-slate-500">
-                    {bus?.bus_type || 'AC Seater / Sleeper (2+2)'} • {bus?.bus_number || 'UP-32-SB-0001'}
+                    {bus?.bus_type || 'AC Seater / Sleeper'} ({bus?.bus_number || 'BUS-101'})
                   </p>
                 </div>
               </div>
 
-              <div className="text-left sm:text-right">
-                <span className="text-xs font-medium text-muted-foreground block">Total Amount Paid</span>
-                <span className="text-2xl font-black text-primary">
-                  {booking.currency || '₹'}
-                  {booking.grand_total}
+              <div className="text-right">
+                <span className="text-xs text-muted-foreground block font-medium">
+                  Booking Date
+                </span>
+                <span className="text-xs font-bold text-slate-700">
+                  {formatShortDateFromIso(booking.created_at)}
                 </span>
               </div>
             </div>
 
-            {/* Journey Route & Timing Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 items-center gap-4 bg-slate-50 rounded-xl p-5 border border-slate-200/80">
-              <div className="sm:col-span-4">
-                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                  Departure / Origin
+            {/* Journey Date Banner */}
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200/80 px-4 py-2.5">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Journey Date:
                 </span>
-                <time className="text-xl font-black text-slate-900 block mt-0.5">
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                {journeyDateFormatted}
+              </span>
+            </div>
+
+            {/* Route & Schedule Timeline */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 items-center gap-4 bg-slate-50/70 rounded-xl p-4 border border-slate-100">
+              <div className="sm:col-span-4">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Origin / Departure
+                </span>
+                <time className="text-lg font-black text-slate-900 block mt-0.5">
                   {depTime}
                 </time>
-                <h3 className="text-xs font-bold text-slate-800 mt-1">
-                  {schedule?.origin}
-                </h3>
-                <p className="text-[11px] font-semibold text-slate-500">{depDate}</p>
+                <p className="text-xs font-semibold text-slate-700">
+                  {schedule?.origin || 'Origin'}
+                </p>
               </div>
 
               <div className="sm:col-span-4 flex flex-col items-center justify-center text-center">
                 <span className="text-xs font-bold text-slate-600 mb-1 flex items-center space-x-1">
-                  <Clock className="h-3.5 w-3.5 text-slate-400" />
-                  <span>
-                    {schedule?.duration_minutes
-                      ? `${Math.floor(schedule.duration_minutes / 60)}h ${schedule.duration_minutes % 60}m`
-                      : '8h 00m'}
-                  </span>
+                  <Clock className="h-3 w-3 text-slate-500" />
+                  <span>{durationFormatted}</span>
                 </span>
-                <div className="h-[2px] w-full max-w-[120px] bg-slate-300 relative">
-                  <div className="absolute left-1/2 -top-1.5 -translate-x-1/2 bg-slate-50 px-1">
-                    <Bus className="h-3.5 w-3.5 text-slate-400" />
-                  </div>
-                </div>
-                <span className="text-[10px] font-extrabold text-emerald-600 mt-1">
+                <div className="h-[2px] w-full max-w-[120px] bg-slate-300" />
+                <span className="text-[10px] font-semibold text-emerald-600 mt-1">
                   Confirmed Route
                 </span>
               </div>
 
               <div className="sm:col-span-4 sm:text-right">
-                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                  Arrival / Destination
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Destination / Arrival
                 </span>
-                <time className="text-xl font-black text-slate-900 block mt-0.5">
+                <time className="text-lg font-black text-slate-900 block mt-0.5">
                   {arrTime}
                 </time>
-                <h3 className="text-xs font-bold text-slate-800 mt-1">
-                  {schedule?.destination}
-                </h3>
-                <p className="text-[11px] font-semibold text-slate-500">{depDate}</p>
+                <p className="text-xs font-semibold text-slate-700">
+                  {schedule?.destination || 'Destination'}
+                </p>
               </div>
             </div>
 
-            {/* Boarding & Dropping Point Details */}
+            {/* Boarding & Dropping Locations */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-1">
-                <div className="flex items-center space-x-1.5 text-emerald-700 font-extrabold text-[11px] uppercase tracking-wider">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-1">
+                <div className="flex items-center space-x-1.5 text-primary font-extrabold uppercase text-[10px]">
                   <MapPin className="h-3.5 w-3.5" />
-                  <span>Boarding Point</span>
+                  <span>Boarding / Pickup Point</span>
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-sm">
-                  {boardingPoint?.name || 'Main Bus Terminal'}
+                  {boardingPoint?.name || 'Main Station'}
                 </h4>
-                <p className="font-semibold text-slate-700">
-                  Time: {boardingPoint?.time ? formatTimeFromIso(boardingPoint.time) : depTime}
-                </p>
-                <p className="text-slate-600">{boardingPoint?.address || schedule?.origin}</p>
+                <p className="font-bold text-emerald-700">Time: {boardingPoint?.time || depTime}</p>
+                <p className="text-slate-600">{boardingPoint?.address || 'Origin Address'}</p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-1">
-                <div className="flex items-center space-x-1.5 text-blue-700 font-extrabold text-[11px] uppercase tracking-wider">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-1">
+                <div className="flex items-center space-x-1.5 text-blue-600 font-extrabold uppercase text-[10px]">
                   <MapPin className="h-3.5 w-3.5" />
-                  <span>Dropping Point</span>
+                  <span>Dropping / Dropoff Point</span>
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-sm">
-                  {droppingPoint?.name || 'Destination Terminal'}
+                  {droppingPoint?.name || 'Terminal Station'}
                 </h4>
-                <p className="font-semibold text-slate-700">
-                  Time: {droppingPoint?.time ? formatTimeFromIso(droppingPoint.time) : arrTime}
-                </p>
-                <p className="text-slate-600">{droppingPoint?.address || schedule?.destination}</p>
+                <p className="font-bold text-blue-700">Time: {droppingPoint?.time || arrTime}</p>
+                <p className="text-slate-600">{droppingPoint?.address || 'Destination Address'}</p>
               </div>
             </div>
 
             {/* Passenger List */}
             <div className="space-y-3 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-                  Passenger Details ({passengers.length})
-                </span>
-                <span className="text-xs font-bold text-slate-500">
-                  Total Seats: {booking.seat_count}
-                </span>
-              </div>
+              <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider block">
+                Passenger Manifest ({passengers.length})
+              </span>
 
-              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
                 {passengers.map((p, idx) => {
                   const seatLabel =
                     p.schedule_seats?.bus_seats?.seat_label || `Seat ${idx + 1}`;
 
                   return (
                     <div
-                      key={p.id || idx}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 text-xs gap-3"
+                      key={p.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 text-xs gap-3"
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="inline-flex h-8 w-11 items-center justify-center rounded-lg bg-primary text-white font-black text-xs shadow-subtle">
+                        <span className="inline-flex h-8 w-12 items-center justify-center rounded-lg bg-primary text-white font-black text-xs shadow-subtle">
                           {seatLabel}
                         </span>
                         <div>
-                          <h4 className="font-extrabold text-slate-900 text-sm">{p.full_name}</h4>
-                          <p className="text-[11px] text-slate-500 font-medium">
+                          <h4 className="font-bold text-slate-900 text-sm">{p.full_name}</h4>
+                          <p className="text-[11px] text-slate-500">
                             Age: {p.age} • Gender: <span className="capitalize">{p.gender}</span>
                           </p>
                         </div>
@@ -424,14 +409,14 @@ export default function BookingDetailPage() {
               </div>
             </div>
 
-            {/* Itemized Fare Breakdown */}
-            <div className="space-y-2 border-t border-slate-100 pt-5 text-xs font-medium">
-              <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider block mb-3">
-                Fare Receipt Summary
+            {/* Fare Summary Breakdown */}
+            <div className="space-y-2 pt-4 border-t border-slate-100 text-xs">
+              <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider block mb-2">
+                Fare Paid Breakdown
               </span>
 
               <div className="flex justify-between text-slate-600">
-                <span>Seat Fare Subtotal ({booking.seat_count} seats)</span>
+                <span>Seat Price Total ({booking.seat_count} seats)</span>
                 <span className="font-semibold text-slate-900">
                   {booking.currency || '₹'}
                   {booking.seat_price_total}
@@ -464,9 +449,7 @@ export default function BookingDetailPage() {
             </div>
           </div>
         </Container>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </AppShell>
   );
 }

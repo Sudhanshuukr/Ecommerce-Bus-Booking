@@ -14,6 +14,7 @@ interface IncomingPassenger {
 
 interface BookingRequestBody {
   scheduleId: string;
+  journeyDate: string;
   boardingPointId: string;
   droppingPointId: string;
   passengers: IncomingPassenger[];
@@ -21,6 +22,7 @@ interface BookingRequestBody {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MOBILE_REGEX = /^\d{10}$/;
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 function validatePassenger(p: IncomingPassenger, index: number): string | null {
   if (!p || typeof p !== 'object') {
@@ -67,10 +69,13 @@ export async function POST(request: NextRequest) {
       return apiError('Invalid JSON request body.', 'INVALID_JSON', 400);
     }
 
-    const { scheduleId, boardingPointId, droppingPointId, passengers } = body || {};
+    const { scheduleId, journeyDate, boardingPointId, droppingPointId, passengers } = body || {};
 
     if (!scheduleId || typeof scheduleId !== 'string' || scheduleId.trim() === '') {
       return apiError('scheduleId is required.', 'INVALID_SCHEDULE_ID', 400);
+    }
+    if (!journeyDate || typeof journeyDate !== 'string' || !DATE_REGEX.test(journeyDate.trim()) || isNaN(new Date(journeyDate.trim()).getTime())) {
+      return apiError('journeyDate is required and must be in YYYY-MM-DD format.', 'INVALID_JOURNEY_DATE', 400);
     }
     if (!boardingPointId || typeof boardingPointId !== 'string' || boardingPointId.trim() === '') {
       return apiError('boardingPointId is required.', 'INVALID_BOARDING_POINT_ID', 400);
@@ -118,10 +123,11 @@ export async function POST(request: NextRequest) {
     const randomDigits = Math.floor(100000 + Math.random() * 900000);
     const bookingReference = `BB-${new Date().getFullYear()}-${randomDigits}`;
 
-    // Execute atomic PostgreSQL RPC function
+    // Execute atomic PostgreSQL RPC function with journey date
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.rpc as any)('create_booking', {
       p_schedule_id: scheduleId.trim(),
+      p_journey_date: journeyDate.trim(),
       p_boarding_point_id: boardingPointId.trim(),
       p_dropping_point_id: droppingPointId.trim(),
       p_user_id: authenticatedUserId,

@@ -29,7 +29,7 @@ export function OffersSection({
             <span>Limited Period Deals</span>
           </div>
 
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             {title}
           </h2>
 

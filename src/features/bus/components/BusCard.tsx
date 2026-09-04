@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Star, ArrowRight, Wifi, Zap, Tv, Coffee, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -19,7 +20,10 @@ export const BusCard = React.memo<BusCardProps>(function BusCard({
   onSelect,
   className,
 }) {
-  // BusCard component - memoized for performance and HMR stability
+  const searchParams = useSearchParams();
+  const dateQuery = searchParams?.get('departureDate') || searchParams?.get('date');
+  const targetHref = dateQuery ? `/buses/${schedule.id}?date=${encodeURIComponent(dateQuery)}` : `/buses/${schedule.id}`;
+
   const { id, operator, busType, route, price, currency, availableSeats, amenities, badge } = schedule;
   const isLowSeatCount = availableSeats <= 5;
 
@@ -83,7 +87,7 @@ export const BusCard = React.memo<BusCardProps>(function BusCard({
           <div className="md:col-span-5 lg:col-span-6 py-1 grid grid-cols-3 items-center gap-2 text-center min-w-0">
             {/* Departure */}
             <div className="text-left min-w-0">
-              <time className="text-base sm:text-lg font-extrabold text-slate-900 whitespace-nowrap block">
+              <time className="text-base sm:text-lg font-bold text-slate-900 whitespace-nowrap block">
                 {route.departureTime}
               </time>
               <address className="not-italic text-xs font-semibold text-slate-600 dark:text-slate-400 truncate block">
@@ -108,7 +112,7 @@ export const BusCard = React.memo<BusCardProps>(function BusCard({
 
             {/* Arrival */}
             <div className="text-right min-w-0">
-              <time className="text-base sm:text-lg font-extrabold text-slate-900 whitespace-nowrap block">
+              <time className="text-base sm:text-lg font-bold text-slate-900 whitespace-nowrap block">
                 {route.arrivalTime}
               </time>
               <address className="not-italic text-xs font-semibold text-slate-600 dark:text-slate-400 truncate block">
@@ -121,7 +125,7 @@ export const BusCard = React.memo<BusCardProps>(function BusCard({
           <div className="md:col-span-3 lg:col-span-3 flex flex-row sm:flex-row md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 pt-3 md:pt-0 md:pl-4 min-w-0">
             <div className="text-left md:text-right min-w-0">
               <div className="flex items-baseline space-x-1 justify-start md:justify-end">
-                <span className="text-2xl font-black text-slate-900">{currency}{price}</span>
+                <span className="text-2xl font-bold text-slate-900">{currency}{price}</span>
                 <span className="text-xs text-muted-foreground font-normal">/ seat</span>
               </div>
               <p
@@ -136,7 +140,7 @@ export const BusCard = React.memo<BusCardProps>(function BusCard({
             </div>
 
             <Link
-              href={`/buses/${id}`}
+              href={targetHref}
               onClick={handleSelect}
               className="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-subtle hover:bg-primary-600 hover:shadow-soft active:scale-95 transition-all w-auto text-center shrink-0 md:mt-2.5"
             >

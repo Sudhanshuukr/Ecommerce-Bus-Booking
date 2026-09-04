@@ -2,9 +2,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Ticket, Clock, ArrowLeft, Search, Home } from 'lucide-react';
+import { CheckCircle2, Ticket, Clock, ArrowLeft, Search, Home, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatFullJourneyDate } from '@/lib/supabase/mappers';
 import { BookingConfirmationData } from '../types/passenger';
+import { MobileTicketPass } from './MobileTicketPass';
 
 export interface BookingConfirmationProps {
   data: BookingConfirmationData;
@@ -20,6 +22,7 @@ export const BookingConfirmation = React.memo<BookingConfirmationProps>(function
   const {
     bookingId,
     bookingDate,
+    journeyDate,
     schedule,
     boardingPoint,
     droppingPoint,
@@ -31,7 +34,33 @@ export const BookingConfirmation = React.memo<BookingConfirmationProps>(function
 
   return (
     <div className={cn('space-y-6 max-w-4xl mx-auto', className)}>
-      {/* Hero Confirmation Card */}
+      {/* Phone Screen Mobile Ticket Pass View */}
+      <div className="block md:hidden space-y-4">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-center shadow-subtle flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-left">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white shrink-0">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-sm font-black text-slate-900">Booking Confirmed!</h1>
+              <p className="text-[11px] text-emerald-800 font-medium">Ref: {bookingId}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onResetBooking}
+            className="text-xs font-bold text-primary hover:underline"
+          >
+            New Booking
+          </button>
+        </div>
+
+        <MobileTicketPass data={data} />
+      </div>
+
+      {/* Desktop Detailed E-Ticket Summary */}
+      <div className="hidden md:block space-y-6">
+        {/* Hero Confirmation Card */}
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center shadow-subtle space-y-3">
         <div className="flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-white shadow-soft">
@@ -42,7 +71,7 @@ export const BookingConfirmation = React.memo<BookingConfirmationProps>(function
           Booking Confirmed!
         </h1>
         <p className="text-xs sm:text-sm font-medium text-slate-700 max-w-md mx-auto">
-          Your bus seats have been successfully reserved on the frontend demo flow.
+          Your bus seats have been successfully reserved.
         </p>
 
         {/* Reference ID Badge */}
@@ -78,10 +107,26 @@ export const BookingConfirmation = React.memo<BookingConfirmationProps>(function
           </div>
         </div>
 
-        {/* Operator & Bus Info */}
-        <div className="space-y-1">
-          <h3 className="text-lg font-extrabold text-slate-900">{operator.name}</h3>
-          <p className="text-xs font-semibold text-slate-600">{busType}</p>
+        {/* Operator & Journey Date Info */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <h3 className="text-lg font-extrabold text-slate-900">{operator.name}</h3>
+            <p className="text-xs font-semibold text-slate-600">{busType}</p>
+          </div>
+
+          {journeyDate && (
+            <div className="inline-flex items-center space-x-2.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs self-start sm:self-auto">
+              <Calendar className="h-4 w-4 text-primary shrink-0" />
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Journey Date
+                </span>
+                <span className="text-xs sm:text-sm font-black text-slate-900">
+                  {formatFullJourneyDate(journeyDate)}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Route & Timing Grid */}
@@ -200,6 +245,8 @@ export const BookingConfirmation = React.memo<BookingConfirmationProps>(function
           </Link>
         </div>
       </div>
+      </div>
     </div>
   );
 });
+

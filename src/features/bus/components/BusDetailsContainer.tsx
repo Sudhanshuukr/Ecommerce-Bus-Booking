@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Star,
@@ -16,12 +17,14 @@ import {
   Tv,
   Coffee,
   CheckCircle2,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BusSchedule } from '../types/bus';
 import { Seat } from '@/features/booking/types/seat';
+import { formatFullJourneyDate } from '@/lib/supabase/mappers';
 
 export interface BusDetailsContainerProps {
   busId: string;
@@ -29,6 +32,9 @@ export interface BusDetailsContainerProps {
 }
 
 export function BusDetailsContainer({ busId, className }: BusDetailsContainerProps) {
+  const searchParams = useSearchParams();
+  const dateQuery = searchParams?.get('date') || searchParams?.get('departureDate');
+
   const [schedule, setSchedule] = React.useState<BusSchedule | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [fetchError, setFetchError] = React.useState<string | null>(null);
@@ -44,7 +50,8 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
     setIsLoading(true);
     setFetchError(null);
 
-    fetch(`/api/buses/${busId}`)
+    const apiUrl = `/api/buses/${busId}${dateQuery ? `?date=${encodeURIComponent(dateQuery)}` : ''}`;
+    fetch(apiUrl)
       .then((res) => {
         if (res.status === 404) {
           throw new Error('SCHEDULE_NOT_FOUND');
@@ -81,7 +88,7 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
     return () => {
       isMounted = false;
     };
-  }, [busId]);
+  }, [busId, dateQuery]);
 
   React.useEffect(() => {
     const cleanup = fetchSchedule();
@@ -139,14 +146,12 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
   // Loading State
   if (isLoading) {
     return (
-      <div
-        className={cn(
-          'flex flex-col items-center justify-center py-24 text-slate-500 space-y-4 bg-white rounded-2xl border border-slate-100 p-8 shadow-subtle',
-          className
-        )}
-      >
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-        <p className="text-sm font-medium">Fetching journey and bus details...</p>
+      <div className={cn('space-y-6 animate-pulse', className)}>
+        <div className="h-28 w-full bg-slate-200/80 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-96 bg-slate-200/80 rounded-2xl" />
+          <div className="h-72 bg-slate-200/80 rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -240,7 +245,7 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
                 <div className="flex items-center space-x-2">
-                  <h1 className="text-2xl font-extrabold text-slate-900">{operator.name}</h1>
+                  <h1 className="text-2xl font-bold text-slate-900">{operator.name}</h1>
                   <ShieldCheck className="h-5 w-5 text-emerald-600" aria-label="Verified Operator" />
                 </div>
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-medium">
@@ -255,10 +260,25 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
               </div>
             </div>
 
+            {/* Journey Date Banner */}
+            {dateQuery && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200/80 px-4 py-2.5">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Journey Date:
+                  </span>
+                </div>
+                <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                  {formatFullJourneyDate(dateQuery)}
+                </span>
+              </div>
+            )}
+
             {/* Journey Timeline */}
             <div className="grid grid-cols-1 sm:grid-cols-12 items-center gap-4 py-2 bg-slate-50/70 rounded-xl p-4">
               <div className="sm:col-span-4">
-                <time className="text-xl font-black text-slate-900">{route.departureTime}</time>
+                <time className="text-xl font-bold text-slate-900">{route.departureTime}</time>
                 <p className="text-xs font-bold text-slate-700 mt-0.5">{route.origin}</p>
                 <p className="text-[11px] text-muted-foreground">Departure Point</p>
               </div>
@@ -274,7 +294,7 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
               </div>
 
               <div className="sm:col-span-4 sm:text-right">
-                <time className="text-xl font-black text-slate-900">{route.arrivalTime}</time>
+                <time className="text-xl font-bold text-slate-900">{route.arrivalTime}</time>
                 <p className="text-xs font-bold text-slate-700 mt-0.5">{route.destination}</p>
                 <p className="text-[11px] text-muted-foreground">Arrival Point</p>
               </div>
@@ -433,7 +453,7 @@ export function BusDetailsContainer({ busId, className }: BusDetailsContainerPro
             {/* Proceed to Seat Selection CTA */}
             <div className="pt-2">
               <Link
-                href={`/buses/${schedule.id}?step=seats`}
+                href={`/buses/${schedule.id}?step=seats${dateQuery ? `&date=${encodeURIComponent(dateQuery)}` : ''}`}
                 className="flex w-full h-11 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-subtle hover:bg-primary-600 hover:shadow-soft active:scale-95 transition-all text-center"
               >
                 <span>Select Seats</span>

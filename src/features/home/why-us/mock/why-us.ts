@@ -1,41 +1,32 @@
-import { WhyUsFeature, WhyUsStat } from '../types/why-us';
+import { WhyUsFeature } from '../types/why-us';
 
 export const MOCK_WHY_US_FEATURES: WhyUsFeature[] = [
   {
     id: 'feature-1',
-    title: 'Easy & Fast Booking',
-    description: 'Rapid seat reservation experience in under 60 seconds with instant mobile e-tickets.',
-    iconName: 'Ticket',
-    badgeText: 'Instant Booking',
+    title: 'Live Seat Selection',
+    description: 'Interactive lower and upper deck seat maps. Choose window, aisle, or sleeper berths with zero ambiguity.',
+    iconName: 'Armchair',
+    badgeText: 'Interactive Map',
   },
   {
     id: 'feature-2',
-    title: 'Trusted Bus Operators',
-    description: 'Travel with reliable, quality-focused bus partners offering verified safety and hygiene standards.',
+    title: 'Verified Bus Amenities',
+    description: 'Transparent fleet listings showing onboard WiFi, USB charging, blankets, water bottles, and safety gear.',
     iconName: 'ShieldCheck',
-    badgeText: 'Verified Partners',
+    badgeText: 'Fleet Transparency',
   },
   {
     id: 'feature-3',
-    title: 'Secure & Flexible Payments',
-    description: 'Protected by bank-grade encryption with multi-option payment methods and hassle-free refund handling.',
-    iconName: 'CreditCard',
-    badgeText: '100% Encrypted',
+    title: 'Boarding Hub Timings',
+    description: 'Clear pickup and drop-off points with exact landmark addresses and scheduled departure timings.',
+    iconName: 'MapPin',
+    badgeText: 'Exact Locations',
   },
   {
     id: 'feature-4',
-    title: 'Reliable Customer Support',
-    description: 'Our dedicated support team is available 24/7 to assist you before, during, and after your trip.',
-    iconName: 'Headphones',
-    badgeText: '24/7 Assistance',
+    title: 'Instant PNR E-Ticket',
+    description: 'Immediate digital booking confirmation with downloadable pass, passenger seat numbers, and receipt.',
+    iconName: 'TicketCheck',
+    badgeText: 'Digital Pass',
   },
 ];
-
-// Placeholder/Demo marketing statistics (frontend static data)
-export const MOCK_WHY_US_STATS: WhyUsStat[] = [
-  { id: 'stat-1', value: '1M+', label: 'Happy Passengers (Demo)' },
-  { id: 'stat-2', value: '500+', label: 'Verified Operators (Demo)' },
-  { id: 'stat-3', value: '99.8%', label: 'On-Time Rate (Demo)' },
-  { id: 'stat-4', value: '24/7', label: 'Dedicated Support (Demo)' },
-];
-

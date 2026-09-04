@@ -1,4 +1,3 @@
 export * from './Hero';
 export * from './HeroContent';
-export * from './HeroVisual';
-export * from './TrustIndicators';
+export * from './TrustStatsBar';

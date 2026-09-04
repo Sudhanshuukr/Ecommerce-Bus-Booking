@@ -34,10 +34,11 @@ export function Navigation({
           <Link
             key={item.href}
             href={item.href}
+            prefetch={true}
             className={cn(
               'text-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm px-1 py-0.5',
               isActive
-                ? 'text-foreground font-bold border-b-2 border-primary'
+                ? 'text-foreground font-semibold border-b-2 border-primary'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >

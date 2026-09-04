@@ -23,6 +23,7 @@ export function formatTimeFromIso(isoString: string): string {
   try {
     const date = new Date(isoString);
     return date.toLocaleTimeString('en-US', {
+      timeZone: 'Asia/Kolkata',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
@@ -32,10 +33,87 @@ export function formatTimeFromIso(isoString: string): string {
   }
 }
 
+export function formatDateFromIso(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+export function formatShortDateFromIso(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+export function formatFullJourneyDate(dateInput: string): string {
+  try {
+    if (!dateInput) return '';
+    const date = dateInput.includes('T')
+      ? new Date(dateInput)
+      : new Date(`${dateInput}T12:00:00+05:30`);
+    if (isNaN(date.getTime())) return dateInput;
+    return date.toLocaleDateString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return dateInput;
+  }
+}
+
 export function formatDurationMinutes(minutes: number): string {
   const hrs = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return `${hrs}h ${mins.toString().padStart(2, '0')}m`;
+}
+
+export function applyTravelDateToIso(baseIso: string, targetDateYmd: string): string {
+  try {
+    if (!targetDateYmd || !/^\d{4}-\d{2}-\d{2}$/.test(targetDateYmd)) {
+      return baseIso;
+    }
+    const baseDate = new Date(baseIso);
+    if (isNaN(baseDate.getTime())) {
+      return baseIso;
+    }
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    const parts = formatter.formatToParts(baseDate);
+    const hour = parts.find((p) => p.type === 'hour')?.value || '00';
+    const minute = parts.find((p) => p.type === 'minute')?.value || '00';
+    const second = parts.find((p) => p.type === 'second')?.value || '00';
+
+    const istIsoString = `${targetDateYmd}T${hour}:${minute}:${second}+05:30`;
+    const finalDate = new Date(istIsoString);
+    return isNaN(finalDate.getTime()) ? baseIso : finalDate.toISOString();
+  } catch {
+    return baseIso;
+  }
 }
 
 export function mapSupabaseScheduleToBusSchedule(
@@ -74,7 +152,15 @@ export function mapSupabaseScheduleToBusSchedule(
   }));
 
   const availableCount = (scheduleSeats || []).filter((s) => s.status === 'available').length;
-  const mappedSeats = scheduleSeats ? mapSupabaseSeatsToSeats(scheduleSeats) : undefined;
+  const hasFullSeatLayout = Boolean(
+    scheduleSeats &&
+      scheduleSeats.length > 0 &&
+      'bus_seat' in scheduleSeats[0] &&
+      (scheduleSeats[0] as { bus_seat?: BusSeatRow }).bus_seat
+  );
+  const mappedSeats = hasFullSeatLayout
+    ? mapSupabaseSeatsToSeats(scheduleSeats as Array<ScheduleSeatRow & { bus_seat: BusSeatRow }>)
+    : undefined;
 
   return {
     id: schedule.id,
@@ -83,7 +169,7 @@ export function mapSupabaseScheduleToBusSchedule(
     route: mappedRoute,
     price: Number(schedule.price),
     currency: schedule.currency,
-    availableSeats: scheduleSeats ? availableCount : schedule.total_seats,
+    availableSeats: scheduleSeats && scheduleSeats.length > 0 ? availableCount : schedule.total_seats,
     totalSeats: schedule.total_seats,
     amenities: bus.amenities,
     badge: schedule.badge || undefined,
@@ -96,14 +182,16 @@ export function mapSupabaseScheduleToBusSchedule(
 export function mapSupabaseSeatsToSeats(
   scheduleSeats: Array<ScheduleSeatRow & { bus_seat: BusSeatRow }>
 ): Seat[] {
-  return scheduleSeats.map((item) => ({
-    id: item.id,
-    label: item.bus_seat.seat_label,
-    deck: item.bus_seat.deck,
-    row: item.bus_seat.row,
-    column: item.bus_seat.column,
-    type: item.bus_seat.seat_type,
-    status: item.status,
-    price: Number(item.price),
-  }));
+  return (scheduleSeats || [])
+    .filter((item) => Boolean(item && item.bus_seat))
+    .map((item) => ({
+      id: item.id,
+      label: item.bus_seat?.seat_label || '',
+      deck: item.bus_seat?.deck || 'lower',
+      row: item.bus_seat?.row || 1,
+      column: item.bus_seat?.column || 1,
+      type: item.bus_seat?.seat_type || 'seater',
+      status: item.status,
+      price: Number(item.price || 0),
+    }));
 }

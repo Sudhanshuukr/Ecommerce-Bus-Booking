@@ -1,30 +1,39 @@
-import { AppShell, Container, Section } from '@/components/layout';
+import { AppShell } from '@/components/layout';
 import {
   Hero,
-  OffersSection,
   PopularRoutesSection,
+  OperatorShowcase,
+  HowItWorksSection,
   WhyUsSection,
-  TestimonialsSection,
+  OffersSection,
   CtaSection,
 } from '@/features/home';
-import { BusGrid } from '@/features/bus/components/BusGrid';
 
 export default function Home() {
   return (
     <AppShell>
+      {/* 1. Primary Focus: Hero + Elevated Search + Trust Metrics */}
       <Hero />
-      <OffersSection />
-      <PopularRoutesSection />
+
+      {/* 2. Secondary Focus: Popular Travel Corridors */}
+      <div id="popular-routes">
+        <PopularRoutesSection />
+      </div>
+
+      {/* 3. Operator Network Coverage */}
+      <OperatorShowcase />
+
+      {/* 4. How It Works - 3 Step Booking Flow */}
+      <HowItWorksSection />
+
+      {/* 5. Core Platform Feature Capabilities */}
       <WhyUsSection />
-      <TestimonialsSection />
+
+      {/* 6. Promotional Deals & Offers */}
+      <OffersSection />
+
+      {/* 7. Final Conversion Action */}
       <CtaSection />
-      <Section spacing="lg" className="bg-slate-50/50 py-12 md:py-16">
-        <Container>
-          <BusGrid />
-        </Container>
-      </Section>
     </AppShell>
   );
 }
-
-

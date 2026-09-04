@@ -44,7 +44,7 @@ export function LoginForm() {
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-1">
           <ShieldCheck className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Welcome Back</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Welcome Back</h1>
         <p className="text-xs text-muted-foreground">Sign in to manage your bus bookings and account preferences.</p>
       </div>
 

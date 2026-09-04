@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentAuthUser } from '@/lib/auth/server';
 import { apiSuccess, apiError } from '@/lib/api/response';
+import { applyTravelDateToIso } from '@/lib/supabase/mappers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,20 +54,39 @@ export async function GET(request: NextRequest) {
     const upcoming: typeof bookingsList = [];
     const completed: typeof bookingsList = [];
 
-    bookingsList.forEach((booking: any) => {
+    bookingsList.forEach((booking: (typeof bookingsList)[number]) => {
       const schedule = booking.schedules;
-      const arrivalTimeStr = schedule?.arrival_time || schedule?.departure_time;
-      const arrivalDate = arrivalTimeStr ? new Date(arrivalTimeStr) : null;
+      const journeyDateStr = booking.journey_date || (schedule?.departure_time ? schedule.departure_time.split('T')[0] : null);
 
+      const adjustedDeparture = journeyDateStr && schedule?.departure_time
+        ? applyTravelDateToIso(schedule.departure_time, journeyDateStr)
+        : schedule?.departure_time;
+
+      const adjustedArrival = journeyDateStr && schedule?.arrival_time
+        ? applyTravelDateToIso(schedule.arrival_time, journeyDateStr)
+        : schedule?.arrival_time;
+
+      const arrivalDate = adjustedArrival ? new Date(adjustedArrival) : null;
       const isTimePast = arrivalDate ? arrivalDate < now : false;
       const isCompleted = booking.status === 'completed' || isTimePast;
 
+      const enrichedBooking = {
+        ...booking,
+        schedules: schedule
+          ? {
+              ...schedule,
+              departure_time: adjustedDeparture,
+              arrival_time: adjustedArrival,
+            }
+          : schedule,
+      };
+
       if (booking.status === 'cancelled') {
-        completed.push({ ...booking, displayStatus: 'cancelled' });
+        completed.push({ ...enrichedBooking, displayStatus: 'cancelled' });
       } else if (isCompleted) {
-        completed.push({ ...booking, displayStatus: 'completed' });
+        completed.push({ ...enrichedBooking, displayStatus: 'completed' });
       } else {
-        upcoming.push({ ...booking, displayStatus: 'confirmed' });
+        upcoming.push({ ...enrichedBooking, displayStatus: 'confirmed' });
       }
     });
 

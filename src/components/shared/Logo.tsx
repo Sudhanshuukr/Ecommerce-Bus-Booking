@@ -21,14 +21,14 @@ export function Logo({
   const logoContent = (
     <span
       className={cn(
-        'font-heading font-extrabold text-foreground inline-flex items-center select-none',
+        'font-heading font-bold text-foreground inline-flex items-center select-none',
         sizeStyles[size],
         className
       )}
     >
       <span>Bus</span>
       <span className="text-accent">Booking</span>
-      <span className="text-accent ml-0.5 font-black">.</span>
+      <span className="text-accent ml-0.5 font-bold">.</span>
     </span>
   );
 

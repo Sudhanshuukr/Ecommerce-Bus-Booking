@@ -18,25 +18,25 @@ export interface CtaSectionProps {
 
 export function CtaSection({
   badgeText = 'Start Traveling',
-  headline = 'Ready to Book Your Next Journey?',
-  description = 'Find and compare verified bus operators, select your preferred seats, and get instant mobile e-tickets in seconds.',
-  primaryCtaText = 'Search Buses Now',
+  headline = 'Ready to Plan Your Next Journey?',
+  description = 'Compare verified bus schedules, select your exact seat on live deck layouts, and get instant digital e-tickets in seconds.',
+  primaryCtaText = 'Search Buses',
   primaryCtaHref = '/search',
-  secondaryCtaText = 'Explore Popular Routes',
-  secondaryCtaHref = '/routes',
+  secondaryCtaText = 'View Popular Corridors',
+  secondaryCtaHref = '/#popular-routes',
   className,
 }: CtaSectionProps) {
   return (
     <Section spacing="lg" className={cn('bg-background py-12 md:py-16', className)}>
       <Container>
-        <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-slate-900/5 p-8 text-center shadow-lg dark:border-primary/30 dark:from-primary/20 dark:via-slate-900 dark:to-slate-950 sm:p-12 md:p-16">
+        <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-slate-900/5 p-8 text-center shadow-soft sm:p-12 md:p-16">
           {/* Background Ambient Accents */}
           <div
             className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl"
+            className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-accent/10 blur-3xl"
             aria-hidden="true"
           />
 
@@ -48,22 +48,22 @@ export function CtaSection({
             </div>
 
             {/* Headline */}
-            <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               {headline}
             </h2>
 
             {/* Description */}
-            <p className="max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className="max-w-xl text-sm sm:text-base leading-relaxed text-muted-foreground">
               {description}
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row w-full sm:w-auto">
               <Link
                 href={primaryCtaHref}
                 className={cn(
                   buttonVariants({ variant: 'default', size: 'lg' }),
-                  'group w-full sm:w-auto shadow-md transition-all duration-300 hover:shadow-lg'
+                  'group w-full sm:w-auto shadow-subtle transition-all duration-300 hover:shadow-hover'
                 )}
               >
                 <Search className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -79,7 +79,7 @@ export function CtaSection({
                   href={secondaryCtaHref}
                   className={cn(
                     buttonVariants({ variant: 'outline', size: 'lg' }),
-                    'w-full sm:w-auto'
+                    'w-full sm:w-auto bg-white/80'
                   )}
                 >
                   {secondaryCtaText}

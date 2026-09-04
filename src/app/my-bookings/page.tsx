@@ -6,21 +6,16 @@ import {
   Ticket,
   Clock,
   Calendar,
-  MapPin,
-  ArrowRight,
   Search,
-  CheckCircle2,
   AlertCircle,
   Bus,
   ChevronRight,
   ShieldAlert,
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/layout/Container';
+import { AppShell, Container } from '@/components/layout';
 import { useAuth } from '@/features/auth/context/AuthProvider';
 import { cn } from '@/lib/utils';
-import { formatTimeFromIso } from '@/lib/supabase/mappers';
+import { formatTimeFromIso, formatShortDateFromIso, formatFullJourneyDate, formatDurationMinutes } from '@/lib/supabase/mappers';
 
 interface PassengerJoined {
   id: string;
@@ -39,6 +34,7 @@ interface PassengerJoined {
 interface BookingRecord {
   id: string;
   booking_reference: string;
+  journey_date?: string;
   seat_count: number;
   seat_price_total: number;
   service_fee: number;
@@ -124,15 +120,13 @@ export default function MyBookingsPage() {
   const activeBookings = activeTab === 'upcoming' ? upcomingBookings : completedBookings;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/50">
-      <Header />
-
-      <main className="flex-1 py-8 sm:py-12">
+    <AppShell className="bg-slate-50/50">
+      <div className="py-8 sm:py-12">
         <Container className="max-w-5xl space-y-8">
           {/* Header Title Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                 My Bookings
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -142,15 +136,31 @@ export default function MyBookingsPage() {
 
             <Link
               href="/search"
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-subtle hover:bg-slate-800 transition-all self-start sm:self-auto"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-subtle hover:bg-slate-800 transition-all self-start sm:self-auto"
             >
               <Search className="mr-2 h-4 w-4" />
               <span>Book New Bus</span>
             </Link>
           </div>
 
+          {/* Loading State Skeleton */}
+          {(authLoading || isLoading) && (
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-subtle animate-pulse space-y-4"
+                >
+                  <div className="h-5 w-48 bg-slate-200 rounded" />
+                  <div className="h-12 w-full bg-slate-100 rounded-xl" />
+                  <div className="h-4 w-32 bg-slate-200 rounded" />
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Authentication Protection Banner */}
-          {!authLoading && !isAuthenticated && (
+          {!authLoading && !isAuthenticated && !isLoading && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center space-y-4">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <ShieldAlert className="h-6 w-6" />
@@ -178,8 +188,8 @@ export default function MyBookingsPage() {
             </div>
           )}
 
-          {/* Main Content View (Only when Authenticated) */}
-          {isAuthenticated && (
+          {/* Main Content View (Only when Authenticated & loaded) */}
+          {!authLoading && isAuthenticated && !isLoading && (
             <div className="space-y-6">
               {/* Tab Navigation Controls */}
               <div className="flex items-center space-x-2 border-b border-slate-200">
@@ -229,22 +239,6 @@ export default function MyBookingsPage() {
                   </span>
                 </button>
               </div>
-
-              {/* Loading State Skeleton */}
-              {isLoading && (
-                <div className="space-y-4">
-                  {[1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-subtle animate-pulse space-y-4"
-                    >
-                      <div className="h-5 w-48 bg-slate-200 rounded" />
-                      <div className="h-12 w-full bg-slate-100 rounded-xl" />
-                      <div className="h-4 w-32 bg-slate-200 rounded" />
-                    </div>
-                  ))}
-                </div>
-              )}
 
               {/* Error Alert */}
               {!isLoading && errorMessage && (
@@ -304,14 +298,15 @@ export default function MyBookingsPage() {
                       ? formatTimeFromIso(schedule.arrival_time)
                       : 'N/A';
 
-                    const depDate = schedule?.departure_time
-                      ? new Date(schedule.departure_time).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })
+                    const journeyDateFormatted = booking.journey_date
+                      ? formatFullJourneyDate(booking.journey_date)
+                      : schedule?.departure_time
+                      ? formatFullJourneyDate(schedule.departure_time)
                       : 'N/A';
+
+                    const durationFormatted = schedule?.duration_minutes
+                      ? formatDurationMinutes(schedule.duration_minutes)
+                      : 'Direct Route';
 
                     // Extract seat labels
                     const seatLabels = (booking.passengers || [])
@@ -342,24 +337,42 @@ export default function MyBookingsPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center space-x-2">
-                            <span className="font-mono text-xs font-extrabold bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">
-                              {booking.booking_reference}
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <span className="text-[11px] font-medium text-slate-500 hidden sm:inline">
+                              Booked on {formatShortDateFromIso(booking.created_at)}
                             </span>
-                            <span
-                              className={cn(
-                                'text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider',
-                                booking.displayStatus === 'confirmed' &&
-                                  'bg-emerald-100 text-emerald-800 border border-emerald-200',
-                                booking.displayStatus === 'completed' &&
-                                  'bg-blue-100 text-blue-800 border border-blue-200',
-                                booking.displayStatus === 'cancelled' &&
-                                  'bg-red-100 text-red-800 border border-red-200'
-                              )}
-                            >
-                              {booking.displayStatus}
+                            <div className="flex items-center space-x-2">
+                              <span className="font-mono text-xs font-extrabold bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">
+                                {booking.booking_reference}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider',
+                                  booking.displayStatus === 'confirmed' &&
+                                    'bg-emerald-100 text-emerald-800 border border-emerald-200',
+                                  booking.displayStatus === 'completed' &&
+                                    'bg-blue-100 text-blue-800 border border-blue-200',
+                                  booking.displayStatus === 'cancelled' &&
+                                    'bg-red-100 text-red-800 border border-red-200'
+                                )}
+                              >
+                                {booking.displayStatus}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Journey Date Banner */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200/80 px-4 py-2.5">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-primary shrink-0" />
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                              Journey Date:
                             </span>
                           </div>
+                          <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                            {journeyDateFormatted}
+                          </span>
                         </div>
 
                         {/* Route & Schedule Timeline Grid */}
@@ -378,15 +391,16 @@ export default function MyBookingsPage() {
                           </div>
 
                           <div className="sm:col-span-4 flex flex-col items-center justify-center text-center">
-                            <div className="flex items-center space-x-1 text-xs font-bold text-slate-500 mb-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span>{depDate}</span>
-                            </div>
+                            <span className="text-xs font-bold text-slate-600 mb-1 flex items-center space-x-1">
+                              <Clock className="h-3 w-3 text-slate-500" />
+                              <span>{durationFormatted}</span>
+                            </span>
                             <div className="h-[2px] w-full max-w-[120px] bg-slate-300 relative">
                               <div className="absolute left-1/2 -top-1.5 -translate-x-1/2 bg-white px-1">
                                 <Bus className="h-3 w-3 text-slate-400" />
                               </div>
                             </div>
+                            <span className="text-[10px] font-semibold text-emerald-600 mt-1">Direct Bus</span>
                           </div>
 
                           <div className="sm:col-span-4 sm:text-right">
@@ -442,9 +456,7 @@ export default function MyBookingsPage() {
             </div>
           )}
         </Container>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </AppShell>
   );
 }

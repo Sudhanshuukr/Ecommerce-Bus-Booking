@@ -205,9 +205,25 @@ export function SearchResultsContainer() {
         {/* Bus Results Grid Area */}
         <div className="flex-1 w-full">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-500 text-sm font-medium space-y-3 rounded-2xl border border-slate-100 bg-white p-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-              <p>Fetching bus schedules from database...</p>
+            <div className="space-y-4 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-subtle space-y-4"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-10 w-10 bg-slate-200 rounded-xl" />
+                      <div className="space-y-1">
+                        <div className="h-4 w-36 bg-slate-200 rounded" />
+                        <div className="h-3 w-24 bg-slate-100 rounded" />
+                      </div>
+                    </div>
+                    <div className="h-6 w-20 bg-slate-200 rounded-lg" />
+                  </div>
+                  <div className="h-16 bg-slate-100/80 rounded-xl" />
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div className="rounded-2xl border border-red-200 bg-red-50/80 p-8 text-center text-red-800 space-y-4">

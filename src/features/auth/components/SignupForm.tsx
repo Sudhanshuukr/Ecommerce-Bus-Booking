@@ -56,7 +56,7 @@ export function SignupForm() {
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-1">
           <UserPlus className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Create Account</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Create Account</h1>
         <p className="text-xs text-muted-foreground">Sign up as a customer to store your traveler details and track bookings.</p>
       </div>
 

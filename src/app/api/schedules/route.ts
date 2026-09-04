@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { mapSupabaseScheduleToBusSchedule } from '@/lib/supabase/mappers';
+import { mapSupabaseScheduleToBusSchedule, applyTravelDateToIso } from '@/lib/supabase/mappers';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { BusSchedule } from '@/features/bus/types/bus';
 import { Database } from '@/lib/supabase/database.types';
@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
         boarding_points (*),
         dropping_points (*),
         schedule_seats (
-          *,
-          bus_seats (*)
+          id,
+          status
         )
       `)
       .order('departure_time', { ascending: true });
@@ -59,28 +59,6 @@ export async function GET(request: NextRequest) {
       query = query.ilike('destination', `%${destination}%`);
     }
 
-    // Filter by travel date if provided
-    if (dateParam) {
-      const parsedDate = new Date(dateParam);
-      if (isNaN(parsedDate.getTime())) {
-        return apiError(
-          'Invalid date format. Please provide a valid date string (e.g. YYYY-MM-DD).',
-          'INVALID_DATE',
-          400
-        );
-      }
-
-      const year = parsedDate.getUTCFullYear();
-      const month = String(parsedDate.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(parsedDate.getUTCDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-
-      const startIso = new Date(`${dateStr}T00:00:00.000Z`).toISOString();
-      const endIso = new Date(`${dateStr}T23:59:59.999Z`).toISOString();
-
-      query = query.gte('departure_time', startIso).lte('departure_time', endIso);
-    }
-
     const { data, error } = await query;
 
     if (error) {
@@ -92,26 +70,87 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const targetDate = dateParam || new Date().toISOString().split('T')[0];
+
+    // Query date-specific bookings for active schedules on targetDate via SECURITY DEFINER RPC
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: bookedSeatsData, error: rpcError } = await (supabase.rpc as any)(
+      'get_occupied_seats_by_date',
+      {
+        p_journey_date: targetDate,
+      }
+    );
+
+    if (rpcError) {
+      console.warn('[GET /api/schedules] RPC get_occupied_seats_by_date warning:', rpcError.message);
+    }
+
+    // Group occupied seat IDs by schedule_id
+    const occupiedSeatsBySchedule = new Map<string, Set<string>>();
+    if (Array.isArray(bookedSeatsData)) {
+      for (const item of (bookedSeatsData as unknown as Array<{ schedule_id?: string; schedule_seat_id?: string }>)) {
+        if (item?.schedule_id && item?.schedule_seat_id) {
+          if (!occupiedSeatsBySchedule.has(item.schedule_id)) {
+            occupiedSeatsBySchedule.set(item.schedule_id, new Set());
+          }
+          occupiedSeatsBySchedule.get(item.schedule_id)!.add(item.schedule_seat_id);
+        }
+      }
+    }
+
     const rawRows = (data || []) as unknown as RawScheduleResult[];
 
     const schedules: BusSchedule[] = rawRows.map((row) => {
-      const sortedBoarding = [...(row.boarding_points || [])].sort(
-        (a, b) => a.sequence_order - b.sequence_order
-      );
-      const sortedDropping = [...(row.dropping_points || [])].sort(
-        (a, b) => a.sequence_order - b.sequence_order
-      );
+      // If dateParam is provided, map operational schedule to the target travel date
+      const adjustedDeparture = dateParam
+        ? applyTravelDateToIso(row.departure_time, dateParam)
+        : row.departure_time;
+
+      const adjustedArrival = dateParam
+        ? applyTravelDateToIso(row.arrival_time, dateParam)
+        : row.arrival_time;
+
+      const sortedBoarding = [...(row.boarding_points || [])]
+        .sort((a, b) => a.sequence_order - b.sequence_order)
+        .map((bp) => ({
+          ...bp,
+          time: dateParam ? applyTravelDateToIso(bp.time, dateParam) : bp.time,
+        }));
+
+      const sortedDropping = [...(row.dropping_points || [])]
+        .sort((a, b) => a.sequence_order - b.sequence_order)
+        .map((dp) => ({
+          ...dp,
+          time: dateParam ? applyTravelDateToIso(dp.time, dateParam) : dp.time,
+        }));
+
+      const occupiedSet = occupiedSeatsBySchedule.get(row.id) || new Set<string>();
+      const dynamicScheduleSeats = (row.schedule_seats || []).map((ss) => {
+        let dynamicStatus: 'available' | 'reserved' | 'occupied' = ss.status;
+        if (occupiedSet.has(ss.id)) {
+          dynamicStatus = 'occupied';
+        } else if (ss.status === 'occupied') {
+          dynamicStatus = 'available';
+        }
+        return {
+          ...ss,
+          status: dynamicStatus,
+        };
+      });
 
       return mapSupabaseScheduleToBusSchedule({
-        schedule: row,
+        schedule: {
+          ...row,
+          departure_time: adjustedDeparture,
+          arrival_time: adjustedArrival,
+        },
         operator: row.operators,
         bus: row.buses,
         boardingPoints: sortedBoarding,
         droppingPoints: sortedDropping,
-        scheduleSeats: (row.schedule_seats || []).map((ss) => ({
-          ...ss,
-          bus_seat: ss.bus_seats,
-        })),
+        scheduleSeats: dynamicScheduleSeats as unknown as Parameters<
+          typeof mapSupabaseScheduleToBusSchedule
+        >[0]['scheduleSeats'],
       });
     });
 

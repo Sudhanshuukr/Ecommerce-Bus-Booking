@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentAuthUser } from '@/lib/auth/server';
 import { apiSuccess, apiError } from '@/lib/api/response';
+import { applyTravelDateToIso } from '@/lib/supabase/mappers';
 
 export async function GET(
   request: NextRequest,
@@ -65,9 +66,17 @@ export async function GET(
 
     const now = new Date();
     const schedule = booking.schedules;
-    const arrivalTimeStr = schedule?.arrival_time || schedule?.departure_time;
-    const arrivalDate = arrivalTimeStr ? new Date(arrivalTimeStr) : null;
+    const journeyDateStr = booking.journey_date || (schedule?.departure_time ? schedule.departure_time.split('T')[0] : null);
 
+    const adjustedDeparture = journeyDateStr && schedule?.departure_time
+      ? applyTravelDateToIso(schedule.departure_time, journeyDateStr)
+      : schedule?.departure_time;
+
+    const adjustedArrival = journeyDateStr && schedule?.arrival_time
+      ? applyTravelDateToIso(schedule.arrival_time, journeyDateStr)
+      : schedule?.arrival_time;
+
+    const arrivalDate = adjustedArrival ? new Date(adjustedArrival) : null;
     const isTimePast = arrivalDate ? arrivalDate < now : false;
     const isCompleted = booking.status === 'completed' || isTimePast;
 
@@ -78,8 +87,31 @@ export async function GET(
         ? 'completed'
         : 'confirmed';
 
+    const adjustedBoarding = booking.boarding_points && journeyDateStr
+      ? {
+          ...booking.boarding_points,
+          time: applyTravelDateToIso(booking.boarding_points.time, journeyDateStr),
+        }
+      : booking.boarding_points;
+
+    const adjustedDropping = booking.dropping_points && journeyDateStr
+      ? {
+          ...booking.dropping_points,
+          time: applyTravelDateToIso(booking.dropping_points.time, journeyDateStr),
+        }
+      : booking.dropping_points;
+
     return apiSuccess({
       ...booking,
+      schedules: schedule
+        ? {
+            ...schedule,
+            departure_time: adjustedDeparture,
+            arrival_time: adjustedArrival,
+          }
+        : schedule,
+      boarding_points: adjustedBoarding,
+      dropping_points: adjustedDropping,
       displayStatus,
     });
   } catch (err: unknown) {

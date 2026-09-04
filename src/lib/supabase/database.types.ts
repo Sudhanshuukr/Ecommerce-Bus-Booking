@@ -280,6 +280,7 @@ export interface Database {
           booking_reference: string;
           user_id: string | null;
           schedule_id: string;
+          journey_date: string;
           boarding_point_id: string;
           dropping_point_id: string;
           seat_count: number;
@@ -297,6 +298,7 @@ export interface Database {
           booking_reference: string;
           user_id?: string | null;
           schedule_id: string;
+          journey_date: string;
           boarding_point_id: string;
           dropping_point_id: string;
           seat_count: number;
@@ -314,6 +316,7 @@ export interface Database {
           booking_reference?: string;
           user_id?: string | null;
           schedule_id?: string;
+          journey_date?: string;
           boarding_point_id?: string;
           dropping_point_id?: string;
           seat_count?: number;
