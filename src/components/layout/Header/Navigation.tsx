@@ -22,7 +22,7 @@ export function Navigation({
 
   return (
     <nav
-      className={cn('hidden md:flex items-center space-x-6', className)}
+      className={cn('hidden md:flex items-center space-x-1 lg:space-x-1.5', className)}
       aria-label="Main Navigation"
     >
       {items.map((item) => {
@@ -36,10 +36,10 @@ export function Navigation({
             href={item.href}
             prefetch={true}
             className={cn(
-              'text-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm px-1 py-0.5',
+              'rounded-full px-3.5 py-1.5 text-xs lg:text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
               isActive
-                ? 'text-foreground font-semibold border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-primary/10 text-primary font-bold shadow-subtle'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
             )}
           >
             {item.label}

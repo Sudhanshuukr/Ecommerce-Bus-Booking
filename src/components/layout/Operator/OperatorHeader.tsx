@@ -30,7 +30,7 @@ export function OperatorHeader({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur shadow-subtle',
+        'sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-6 backdrop-blur shadow-subtle',
         className
       )}
     >

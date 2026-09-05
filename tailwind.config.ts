@@ -72,10 +72,10 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: ['var(--font-plus-jakarta)', 'sans-serif'],
-        display: ['var(--font-plus-jakarta)', 'sans-serif'],
-        body: ['var(--font-inter)', 'sans-serif'],
-        sans: ['var(--font-inter)', 'sans-serif'],
+        heading: ['var(--font-raleway)', 'var(--font-heading)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-raleway)', 'var(--font-heading)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-manrope)', 'var(--font-body)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-manrope)', 'var(--font-body)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         sm: 'var(--radius-sm, 0.375rem)',

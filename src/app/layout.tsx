@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { fontInter, fontPlusJakarta } from '@/lib/fonts';
+import { fontHeading, fontBody } from '@/lib/fonts';
 import { siteConfig } from '@/config/site';
 import { AuthProvider } from '@/features/auth/context/AuthProvider';
 import './globals.css';
@@ -20,9 +20,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontPlusJakarta.variable} ${fontInter.variable}`}
+      className={`${fontHeading.variable} ${fontBody.variable}`}
     >
-      <body className="min-h-screen bg-background font-body text-foreground antialiased">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

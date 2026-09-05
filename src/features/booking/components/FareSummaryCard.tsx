@@ -91,22 +91,22 @@ export const FareSummaryCard = React.memo<FareSummaryCardProps>(function FareSum
       <div className="space-y-2 border-t border-slate-100 pt-4 text-xs font-medium">
         <div className="flex justify-between text-slate-600">
           <span>Seat Fare Subtotal</span>
-          <span className="font-semibold text-slate-900">{currency}{fareBreakdown.seatPriceTotal}</span>
+          <span className="font-semibold font-sans tabular-nums text-slate-900">{currency}{fareBreakdown.seatPriceTotal}</span>
         </div>
 
         <div className="flex justify-between text-slate-600">
           <span>Service Fee</span>
-          <span className="font-semibold text-slate-900">{currency}{fareBreakdown.serviceFee}</span>
+          <span className="font-semibold font-sans tabular-nums text-slate-900">{currency}{fareBreakdown.serviceFee}</span>
         </div>
 
         <div className="flex justify-between text-slate-600">
           <span>GST / Tax (5%)</span>
-          <span className="font-semibold text-slate-900">{currency}{fareBreakdown.tax}</span>
+          <span className="font-semibold font-sans tabular-nums text-slate-900">{currency}{fareBreakdown.tax}</span>
         </div>
 
         <div className="border-t border-slate-200 pt-3 flex justify-between text-sm font-extrabold text-slate-900">
           <span>Grand Total</span>
-          <span className="text-xl font-black text-primary">{currency}{fareBreakdown.grandTotal}</span>
+          <span className="text-xl font-black font-sans tabular-nums text-primary">{currency}{fareBreakdown.grandTotal}</span>
         </div>
       </div>
 

@@ -69,8 +69,8 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
   const isMaxReached = totalCount >= MAX_PASSENGERS;
 
   return (
-    <div ref={popoverRef} className={cn('relative flex flex-col space-y-1.5 w-full', className)}>
-      <Label htmlFor="passenger-selector-trigger" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <div ref={popoverRef} className={cn('relative flex flex-col space-y-1 w-full', isOpen && 'z-30', className)}>
+      <Label htmlFor="passenger-selector-trigger" className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Passengers
       </Label>
 
@@ -84,16 +84,16 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
         aria-haspopup="dialog"
         aria-label={`Select passengers. Current: ${summaryText}`}
         className={cn(
-          'flex h-12 w-full items-center justify-between rounded-lg border border-border bg-white px-3.5 text-sm font-medium text-slate-900 shadow-subtle transition-all duration-normal hover:bg-slate-50 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
+          'flex h-11 sm:h-11 md:h-12 w-full items-center justify-between rounded-lg border border-border bg-white px-3 sm:px-3.5 text-xs sm:text-sm font-medium text-slate-900 shadow-subtle transition-all duration-normal hover:bg-slate-50 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
           error && 'border-destructive focus-visible:ring-destructive/20 focus-visible:border-destructive'
         )}
       >
-        <div className="flex items-center space-x-2.5 truncate">
-          <Users className={cn('h-4 w-4 shrink-0', error ? 'text-destructive' : 'text-slate-400')} />
+        <div className="flex items-center space-x-2 sm:space-x-2.5 truncate">
+          <Users className={cn('h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0', error ? 'text-destructive' : 'text-slate-400')} />
           <span className="truncate text-slate-900 font-medium">{summaryText}</span>
         </div>
         <ChevronDown
-          className={cn('h-4 w-4 text-slate-400 transition-transform duration-normal', isOpen && 'rotate-180 text-primary')}
+          className={cn('h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 transition-transform duration-normal', isOpen && 'rotate-180 text-primary')}
         />
       </button>
 
@@ -109,7 +109,7 @@ export const PassengerSelector = React.memo<PassengerSelectorProps>(function Pas
           id="passenger-selector-dialog"
           role="dialog"
           aria-label="Passenger Selection Dialog"
-          className="absolute top-full left-0 z-40 mt-2 w-full min-w-[260px] rounded-xl border border-border bg-white p-4 shadow-modal transition-all duration-normal animate-in fade-in-50 zoom-in-95"
+          className="absolute top-full left-0 sm:left-auto sm:right-0 lg:left-auto lg:right-0 z-50 mt-2 w-full min-w-[260px] sm:w-72 rounded-xl border border-border bg-white p-4 shadow-modal transition-all duration-normal animate-in fade-in-50 zoom-in-95"
         >
           <div className="space-y-4">
             {/* Adult Counter */}

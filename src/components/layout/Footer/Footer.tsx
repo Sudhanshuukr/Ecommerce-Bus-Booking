@@ -1,7 +1,9 @@
 import * as React from 'react';
+import Link from 'next/link';
+import { ShieldCheck, TicketCheck, Headphones, ArrowUpRight } from 'lucide-react';
 import { Container } from '../Container';
 import { Logo } from '@/components/shared/Logo';
-import { FooterSection } from './FooterSection';
+import { ScrollReveal } from '@/components/shared';
 import { SocialLinks } from './SocialLinks';
 import { quickLinksGroup, supportLinksGroup } from './footer-links';
 import { cn } from '@/lib/utils';
@@ -10,50 +12,145 @@ export interface FooterProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
 }
 
+const TOP_ROUTES_FOOTER = [
+  { label: 'Delhi to Lucknow', href: '/search?origin=Delhi&destination=Lucknow' },
+  { label: 'Mumbai to Pune', href: '/search?origin=Mumbai&destination=Pune' },
+  { label: 'Bengaluru to Chennai', href: '/search?origin=Bengaluru&destination=Chennai' },
+  { label: 'Delhi to Jaipur', href: '/search?origin=Delhi&destination=Jaipur' },
+];
+
 export function Footer({ className, ...props }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer
-      className={cn('w-full border-t border-border bg-surface text-foreground', className)}
+      className={cn(
+        'relative flex flex-col justify-between border-t border-slate-800 bg-slate-900 text-slate-200 py-12 md:py-16',
+        className
+      )}
       {...props}
     >
-      <Container className="py-12 md:py-16">
-        {/* Main Footer Content Grid */}
-        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4 lg:gap-12">
-          {/* Brand Column */}
-          <div className="space-y-4 sm:col-span-2 md:col-span-1">
-            <Logo size="default" />
-            <p className="max-w-xs text-sm text-muted-foreground leading-relaxed">
-              Modern, reliable intercity bus ticket reservation platform built for effortless travel.
-            </p>
-            <SocialLinks />
+      <Container className="my-auto space-y-12 sm:space-y-16">
+        <ScrollReveal delay={0}>
+          {/* Top Brand & Statement Banner */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-800 pb-10 sm:pb-12">
+            <div className="space-y-3 max-w-2xl">
+              <div className="flex items-center space-x-3">
+                <Logo size="default" className="text-white" />
+                <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-0.5 text-xs font-semibold text-teal-400">
+                  Verified Transit Network
+                </span>
+              </div>
+              <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
+                India&apos;s modern intercity bus reservation platform. Compare schedules across state transit corporations and private operators, choose your exact seat on live layouts, and get instant digital e-tickets.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <SocialLinks />
+            </div>
           </div>
+        </ScrollReveal>
 
-          {/* Quick Links Column */}
-          <FooterSection group={quickLinksGroup} />
+        {/* Main Links Grid */}
+        <ScrollReveal delay={120}>
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
+            {/* Quick Links Column */}
+            <div className="space-y-3">
+              <h3 className="font-heading text-xs font-bold tracking-wider text-slate-100 uppercase">
+                {quickLinksGroup.title}
+              </h3>
+              <ul className="space-y-2.5">
+                {quickLinksGroup.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-xs sm:text-sm text-slate-400 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Support Links Column */}
-          <FooterSection group={supportLinksGroup} />
+            {/* Explore Column */}
+            <div className="space-y-3">
+              <h3 className="font-heading text-xs font-bold tracking-wider text-slate-100 uppercase">
+                {supportLinksGroup.title}
+              </h3>
+              <ul className="space-y-2.5">
+                {supportLinksGroup.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-xs sm:text-sm text-slate-400 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Trust / Service Column */}
-          <div className="space-y-3">
-            <h3 className="font-heading text-sm font-semibold tracking-wider text-foreground uppercase">
-              Bus Booking
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Safe payments, verified operators, and instant ticket confirmations.
-            </p>
+            {/* Popular Corridors Column */}
+            <div className="space-y-3">
+              <h3 className="font-heading text-xs font-bold tracking-wider text-slate-100 uppercase">
+                Top Corridors
+              </h3>
+              <ul className="space-y-2.5">
+                {TOP_ROUTES_FOOTER.map((route) => (
+                  <li key={route.label}>
+                    <Link
+                      href={route.href}
+                      className="group inline-flex items-center text-xs sm:text-sm text-slate-400 transition-colors hover:text-white"
+                    >
+                      <span>{route.label}</span>
+                      <ArrowUpRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Platform Guarantees Column */}
+            <div className="space-y-4">
+              <h3 className="font-heading text-xs font-bold tracking-wider text-slate-100 uppercase">
+                Platform Trust
+              </h3>
+              <div className="space-y-3 text-xs text-slate-400">
+                <div className="flex items-center space-x-2.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-teal-400">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <span>100% Verified Fleet Operators</span>
+                </div>
+                <div className="flex items-center space-x-2.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-teal-400">
+                    <TicketCheck className="h-4 w-4" />
+                  </div>
+                  <span>Instant PNR Digital E-Tickets</span>
+                </div>
+                <div className="flex items-center space-x-2.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-teal-400">
+                    <Headphones className="h-4 w-4" />
+                  </div>
+                  <span>24/7 Passenger Travel Assistance</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Bottom Bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-xs text-muted-foreground sm:flex-row">
-          <p>© {currentYear} Bus Booking Platform. All rights reserved.</p>
-          <p className="font-medium text-muted-foreground">
-            Built with Next.js & Tailwind CSS
-          </p>
-        </div>
+        <ScrollReveal delay={200}>
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-xs text-slate-500 sm:flex-row">
+            <p>© {currentYear} Bus Booking Platform. All rights reserved.</p>
+            <p className="font-medium text-slate-400">
+              Built for seamless intercity travel across India
+            </p>
+          </div>
+        </ScrollReveal>
       </Container>
     </footer>
   );

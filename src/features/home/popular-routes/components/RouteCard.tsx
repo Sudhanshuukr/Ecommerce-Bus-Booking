@@ -67,7 +67,7 @@ export const RouteCard = React.memo<RouteCardProps>(function RouteCard({ routeIt
               Starting From
             </span>
             <div className="flex items-baseline space-x-1">
-              <span className="text-xl font-bold text-slate-900">{currency}{startingPrice}</span>
+              <span className="text-xl font-bold font-sans tabular-nums text-slate-900">{currency}{startingPrice}</span>
               <span className="text-xs text-muted-foreground font-normal">/ seat</span>
             </div>
           </div>

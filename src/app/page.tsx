@@ -8,10 +8,12 @@ import {
   OffersSection,
   CtaSection,
 } from '@/features/home';
+import { HomepageScrollEffect } from '@/features/home/components/HomepageScrollEffect';
 
 export default function Home() {
   return (
-    <AppShell>
+    <AppShell mainClassName="pt-0" hideFooter={true}>
+      <HomepageScrollEffect />
       {/* 1. Primary Focus: Hero + Elevated Search + Trust Metrics */}
       <Hero />
 

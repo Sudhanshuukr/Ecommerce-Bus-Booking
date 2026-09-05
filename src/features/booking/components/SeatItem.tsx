@@ -65,7 +65,7 @@ export const SeatItem = React.memo<SeatItemProps>(function SeatItem({
       ) : isReserved ? (
         <Lock className="h-3.5 w-3.5" />
       ) : (
-        <span className="text-xs font-bold">{label}</span>
+        <span className="font-sans text-xs font-bold tabular-nums">{label}</span>
       )}
 
       {/* Seat Type Accent Handle */}

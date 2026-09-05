@@ -23,18 +23,18 @@ export const SearchButton = React.memo<SearchButtonProps>(function SearchButton(
       disabled={disabled || isSubmitting}
       size="lg"
       className={cn(
-        'w-full h-12 text-base font-semibold shadow-soft hover:shadow-hover transition-all duration-normal',
+        'w-full h-11 sm:h-11 md:h-12 text-sm sm:text-sm md:text-base font-semibold shadow-soft hover:shadow-hover transition-all duration-normal',
         className
       )}
     >
       {isSubmitting ? (
         <>
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
           Searching Buses...
         </>
       ) : (
         <>
-          <Search className="mr-2.5 h-5 w-5 stroke-[2.5]" />
+          <Search className="mr-2 sm:mr-2.5 h-4 w-4 sm:h-5 sm:w-5 stroke-[2.5]" />
           Search Buses
         </>
       )}

@@ -12,7 +12,7 @@ import {
   MAX_PASSENGERS,
 } from '../types/search-form';
 import { LocationObject } from '../types/location';
-import { findLocationByQuery, LOCATION_DATASET } from '../constants/locations';
+import { findLocationByQuery } from '../constants/locations';
 import { validateSearchQuery, getTodayDateString } from '../utils/validation';
 
 export interface UseSearchFormOptions {
@@ -111,8 +111,8 @@ export function useSearchForm(options: UseSearchFormOptions = {}) {
     }
 
     return {
-      origin: initialQuery?.origin || LOCATION_DATASET[0], // NYC default
-      destination: initialQuery?.destination || LOCATION_DATASET[1], // BOS default
+      origin: initialQuery?.origin || null,
+      destination: initialQuery?.destination || null,
       departureDate: initialQuery?.departureDate || todayStr,
       returnDate: initialQuery?.returnDate || '',
       tripType: initialQuery?.tripType || 'ONE_WAY',

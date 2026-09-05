@@ -151,15 +151,15 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
   const errorId = `${id}-error`;
 
   return (
-    <div ref={containerRef} className={cn('relative flex flex-col space-y-1.5 w-full', className)}>
-      <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <div ref={containerRef} className={cn('relative flex flex-col space-y-1 w-full', className)}>
+      <Label htmlFor={id} className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </Label>
 
       <div className="relative flex items-center">
         <IconComponent
           className={cn(
-            'absolute left-3.5 h-4 w-4 pointer-events-none transition-colors duration-normal z-10',
+            'absolute left-3 sm:left-3.5 h-3.5 w-3.5 sm:h-4 sm:w-4 pointer-events-none transition-colors duration-normal z-10',
             error ? 'text-destructive' : 'text-slate-400 group-focus-within:text-primary'
           )}
           aria-hidden="true"
@@ -191,12 +191,12 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={cn(
-            'pl-10 pr-16 h-12 text-sm font-medium text-slate-900 bg-white placeholder:text-slate-400 border-border focus-visible:ring-2 focus-visible:ring-primary/20',
+            'pl-9 pr-14 sm:pl-10 sm:pr-16 h-11 sm:h-11 md:h-12 text-xs sm:text-sm font-medium text-slate-900 bg-white placeholder:text-slate-400 border-border focus-visible:ring-2 focus-visible:ring-primary/20',
             error && 'border-destructive focus-visible:ring-destructive/20 focus-visible:border-destructive'
           )}
         />
 
-        <div className="absolute right-3 flex items-center space-x-1.5 z-10">
+        <div className="absolute right-2.5 sm:right-3 flex items-center space-x-1 sm:space-x-1.5 z-10">
           {inputValue && (
             <button
               type="button"
@@ -204,12 +204,12 @@ export const LocationInput = React.memo<LocationInputProps>(function LocationInp
               aria-label={`Clear ${label} selection`}
               className="p-1 rounded-full text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           )}
 
           {value && (
-            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300 pointer-events-none shrink-0">
+            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300 pointer-events-none shrink-0">
               {value.code}
             </span>
           )}

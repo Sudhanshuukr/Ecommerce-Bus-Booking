@@ -68,7 +68,7 @@ export default async function OperatorDashboardPage() {
         subtitle="Live fleet metrics, active schedules, and recent customer bookings."
       />
 
-      <main className="px-6 space-y-8">
+      <main className="px-4 sm:px-6 space-y-8">
         {/* Banner if operator is unassigned */}
         {!operatorId && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 flex items-start space-x-3">

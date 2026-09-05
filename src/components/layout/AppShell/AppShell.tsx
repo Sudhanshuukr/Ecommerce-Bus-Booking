@@ -8,6 +8,7 @@ export interface AppShellProps {
   children: React.ReactNode;
   className?: string;
   mainClassName?: string;
+  footerClassName?: string;
   hideHeader?: boolean;
   hideFooter?: boolean;
   hideMobileNav?: boolean;
@@ -17,6 +18,7 @@ export function AppShell({
   children,
   className,
   mainClassName,
+  footerClassName,
   hideHeader = false,
   hideFooter = false,
   hideMobileNav = false,
@@ -30,6 +32,7 @@ export function AppShell({
       <main
         className={cn(
           'flex-1',
+          !hideHeader && 'pt-16 sm:pt-20',
           !hideMobileNav && 'pb-[var(--mobile-bottom-nav-offset)] md:pb-0',
           mainClassName
         )}
@@ -38,7 +41,7 @@ export function AppShell({
       </main>
 
       {/* Primary Application Footer */}
-      {!hideFooter && <Footer />}
+      {!hideFooter && <Footer className={footerClassName} />}
 
       {/* Mobile Sticky Bottom Navigation */}
       {!hideMobileNav && <MobileBottomNav />}

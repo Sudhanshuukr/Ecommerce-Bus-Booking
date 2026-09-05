@@ -41,13 +41,13 @@ export const DatePicker = React.memo<DatePickerProps>(function DatePicker({
   };
 
   return (
-    <div className={cn('flex flex-col space-y-1.5 w-full', className)}>
-      <div className="flex items-center justify-between">
-        <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className={cn('flex flex-col space-y-1 w-full', className)}>
+      <div className="flex items-center justify-between gap-1 overflow-hidden">
+        <Label htmlFor={id} className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
           {label}
         </Label>
         {showQuickPresets && !disabled && (
-          <div className="flex items-center space-x-1.5 text-[11px]">
+          <div className="flex items-center space-x-1 sm:space-x-1.5 text-[10px] sm:text-[11px] shrink-0">
             <button
               type="button"
               onClick={() => handlePresetSelect(0)}
@@ -70,7 +70,7 @@ export const DatePicker = React.memo<DatePickerProps>(function DatePicker({
       <div className="relative flex items-center">
         <CalendarIcon
           className={cn(
-            'absolute left-3.5 h-4 w-4 pointer-events-none transition-colors duration-normal',
+            'absolute left-3 sm:left-3.5 h-3.5 w-3.5 sm:h-4 sm:w-4 pointer-events-none transition-colors duration-normal',
             disabled ? 'text-slate-300' : error ? 'text-destructive' : 'text-slate-400'
           )}
           aria-hidden="true"
@@ -85,7 +85,7 @@ export const DatePicker = React.memo<DatePickerProps>(function DatePicker({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'pl-10 h-12 text-sm font-medium text-slate-900 bg-white border-border focus-visible:ring-primary/20',
+            'pl-9 sm:pl-10 h-11 sm:h-11 md:h-12 text-xs sm:text-sm font-medium text-slate-900 bg-white border-border focus-visible:ring-primary/20',
             disabled && 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200',
             error && 'border-destructive focus-visible:ring-destructive/20 focus-visible:border-destructive'
           )}

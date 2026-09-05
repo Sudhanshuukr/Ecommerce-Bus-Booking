@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { LogOut, Shield, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthProvider';
 import { Button } from '@/components/ui/button';
+import { mainNavItems } from './nav-items';
+import { cn } from '@/lib/utils';
 
 export interface MobileMenuPopupProps {
   isOpen: boolean;
@@ -79,8 +81,32 @@ export function MobileMenuPopup({ isOpen, onClose, triggerRef }: MobileMenuPopup
   return (
     <div
       ref={popupRef}
-      className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white border border-slate-200/90 shadow-2xl p-2 z-50 md:hidden animate-in fade-in-50 zoom-in-95 duration-150"
+      className="absolute right-0 top-full mt-3 w-64 max-w-[calc(100vw-2rem)] rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl p-2 z-50 md:hidden animate-in fade-in-50 zoom-in-95 duration-150"
     >
+      {/* Navigation Links */}
+      <div className="space-y-0.5 border-b border-slate-100 pb-2 mb-2">
+        {mainNavItems.map((item) => {
+          const isActive =
+            item.href === '/'
+              ? pathname === '/'
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={cn(
+                'flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-colors',
+                isActive
+                  ? 'bg-primary/10 text-primary font-bold'
+                  : 'text-slate-700 hover:bg-slate-100'
+              )}
+            >
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
       {isAuthenticated ? (
         <div className="space-y-2 p-1">
           {/* User Info Header */}

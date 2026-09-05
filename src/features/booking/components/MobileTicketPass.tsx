@@ -69,7 +69,7 @@ export function MobileTicketPass({ data, className }: MobileTicketPassProps) {
           {/* Timeline: Origin -> Destination */}
           <div className="flex items-center justify-between gap-3 text-center">
             <div className="text-left min-w-0">
-              <span className="text-2xl font-black text-slate-900 block tracking-tight">
+              <span className="text-2xl font-black font-sans tabular-nums text-slate-900 block tracking-tight">
                 {schedule.route.departureTime}
               </span>
               <span className="text-xs font-bold text-slate-700 truncate block max-w-[110px]">
@@ -91,7 +91,7 @@ export function MobileTicketPass({ data, className }: MobileTicketPassProps) {
             </div>
 
             <div className="text-right min-w-0">
-              <span className="text-2xl font-black text-slate-900 block tracking-tight">
+              <span className="text-2xl font-black font-sans tabular-nums text-slate-900 block tracking-tight">
                 {schedule.route.arrivalTime}
               </span>
               <span className="text-xs font-bold text-slate-700 truncate block max-w-[110px]">
@@ -131,7 +131,7 @@ export function MobileTicketPass({ data, className }: MobileTicketPassProps) {
                 {selectedSeats.map((s) => (
                   <span
                     key={s.id}
-                    className="inline-flex items-center rounded-lg bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-black text-primary"
+                    className="inline-flex items-center rounded-lg bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-black font-sans tabular-nums text-primary"
                   >
                     {s.label}
                   </span>

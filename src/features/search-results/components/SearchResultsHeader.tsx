@@ -46,10 +46,10 @@ export const SearchResultsHeader = React.memo<SearchResultsHeaderProps>(function
       {/* Upper Row: Route Info & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Route Summary */}
-        <div className="space-y-1.5">
-          <div className="flex items-center space-x-2">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center space-x-2 min-w-0">
             <MapPin className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
-            <h1 className="text-lg font-bold text-slate-900 sm:text-xl capitalize">{routeText}</h1>
+            <h1 className="text-base sm:text-xl font-bold text-slate-900 capitalize break-words min-w-0">{routeText}</h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">

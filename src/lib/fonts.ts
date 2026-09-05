@@ -1,16 +1,15 @@
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import { Raleway, Manrope } from 'next/font/google';
 
-export const fontPlusJakarta = Plus_Jakarta_Sans({
+export const fontHeading = Raleway({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-plus-jakarta',
+  weight: ['600', '700', '800'],
+  variable: '--font-raleway',
   display: 'swap',
 });
 
-export const fontInter = Inter({
+export const fontBody = Manrope({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
   display: 'swap',
 });
-

@@ -35,17 +35,17 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
   return (
     <Card
       className={cn(
-        'w-full rounded-2xl border border-border/80 bg-white p-5 shadow-modal md:p-6 lg:p-7 transition-all duration-normal',
+        'relative z-20 w-full rounded-2xl border border-border/80 bg-white p-4 sm:p-5 md:p-6 lg:p-6 shadow-modal transition-all duration-normal',
         className
       )}
     >
-      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-3.5 sm:space-y-4 md:space-y-5">
         {/* Top Header: Trip Type Tabs */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 sm:pb-3.5">
           <div
             role="tablist"
             aria-label="Trip Type Selection"
-            className="inline-flex items-center rounded-xl bg-slate-100/80 p-1 text-slate-600"
+            className="inline-flex items-center rounded-xl bg-slate-100/80 p-0.5 sm:p-1 text-slate-600"
           >
             {([
               { value: 'ONE_WAY', label: 'One Way' },
@@ -58,7 +58,7 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
                 aria-selected={query.tripType === tab.value}
                 onClick={() => setTripType(tab.value)}
                 className={cn(
-                  'rounded-lg px-4 py-1.5 text-xs font-semibold tracking-wide transition-all duration-normal',
+                  'rounded-lg px-3.5 py-1.5 sm:px-4 sm:py-1.5 text-xs font-semibold tracking-wide transition-all duration-normal',
                   query.tripType === tab.value
                     ? 'bg-white text-primary shadow-subtle'
                     : 'text-slate-600 hover:text-slate-900'
@@ -69,8 +69,8 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
             ))}
           </div>
 
-          <div className="text-xs font-medium text-muted-foreground hidden sm:block">
-            Direct & Connecting Bus Schedules
+          <div className="text-[11px] sm:text-xs font-medium text-muted-foreground hidden sm:block">
+            Direct &amp; Connecting Bus Schedules
           </div>
         </div>
 
@@ -78,50 +78,49 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
         {errors.general && (
           <div
             role="alert"
-            className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-xs font-medium text-destructive"
+            className="rounded-lg bg-destructive/10 border border-destructive/20 p-2.5 sm:p-3 text-xs font-medium text-destructive"
           >
             {errors.general}
           </div>
         )}
 
         {/* Main Search Controls Grid / Row Layout */}
-        <div className="flex flex-col space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:flex lg:flex-row lg:items-end lg:gap-3">
+        <div className="flex flex-col space-y-3 sm:space-y-3.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:flex lg:flex-row lg:items-end lg:gap-3 xl:gap-3.5">
           {/* Location Group (Origin + Swap + Destination) */}
-          <div className="relative flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 md:col-span-2 lg:flex-1 lg:space-x-2">
-            <div className="flex-1">
+          <div className="relative flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:gap-1.5 md:col-span-2 lg:flex-[1.8] xl:flex-[2] lg:min-w-0 lg:gap-2">
+            <div className="flex-1 min-w-0">
               <LocationInput
                 id="search-origin"
                 label="From"
                 type="origin"
                 value={query.origin}
                 onChange={setOrigin}
-                placeholder="e.g. Delhi"
+                placeholder="Departure city"
                 error={errors.origin}
               />
             </div>
 
             {/* Dedicated Swap Button */}
-            <div className="flex items-center justify-center self-center pt-5 sm:pt-4">
+            <div className="flex items-center justify-center self-center py-0.5 sm:py-0 sm:pt-4 shrink-0">
               <SwapButton onClick={handleSwapLocations} isSwapping={uiState.isSwapping} />
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <LocationInput
                 id="search-destination"
                 label="To"
                 type="destination"
                 value={query.destination}
                 onChange={setDestination}
-                placeholder="e.g. Lucknow"
+                placeholder="Arrival city"
                 error={errors.destination}
               />
             </div>
-
           </div>
 
-          {/* Date Picker Group (Departure & Return) */}
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-3 md:col-span-1 lg:flex-1 lg:space-x-2">
-            <div className="flex-1">
+          {/* Date Picker Group (Departure & Return side-by-side) */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:col-span-1 lg:flex-[1.3] xl:flex-[1.4] lg:min-w-0 lg:gap-2.5 xl:gap-3">
+            <div className="min-w-0">
               <DatePicker
                 id="search-departure-date"
                 label="Departure"
@@ -133,7 +132,7 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
               />
             </div>
 
-            <div className="flex-1">
+            <div className="min-w-0">
               <DatePicker
                 id="search-return-date"
                 label="Return"
@@ -146,20 +145,21 @@ export function SearchPanel({ initialQuery, syncWithUrl = true, onSearchSubmit, 
             </div>
           </div>
 
-          {/* Passengers Group */}
-          <div className="md:col-span-1 lg:w-48">
-            <PassengerSelector
-              passengers={query.passengers}
-              onUpdateCount={updatePassengerCount}
-              isOpen={uiState.isPassengerSelectorOpen}
-              onToggleOpen={togglePassengerSelector}
-              error={errors.passengers}
-            />
-          </div>
+          {/* Passengers & CTA Group */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:col-span-1 lg:flex lg:flex-row lg:w-auto lg:gap-2.5 xl:gap-3">
+            <div className="w-full lg:w-40 xl:w-48 shrink-0">
+              <PassengerSelector
+                passengers={query.passengers}
+                onUpdateCount={updatePassengerCount}
+                isOpen={uiState.isPassengerSelectorOpen}
+                onToggleOpen={togglePassengerSelector}
+                error={errors.passengers}
+              />
+            </div>
 
-          {/* Action CTA Button */}
-          <div className="pt-2 md:col-span-2 md:pt-0 lg:w-44">
-            <SearchButton isSubmitting={uiState.isSubmitting} />
+            <div className="sm:self-end w-full lg:w-36 xl:w-40 shrink-0">
+              <SearchButton isSubmitting={uiState.isSubmitting} />
+            </div>
           </div>
         </div>
       </form>

@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Menu, X, LogOut, Shield } from 'lucide-react';
-import { Container } from '../Container';
 import { Logo } from '@/components/shared/Logo';
 import { Button } from '@/components/ui/button';
 import { Navigation } from './Navigation';
@@ -19,7 +18,18 @@ export interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
 export function Header({ className, hideMobileNav = false, ...props }: HeaderProps) {
   const { user, profile, role, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const getRoleLabel = (r: string) => {
     switch (r) {
@@ -40,22 +50,31 @@ export function Header({ className, hideMobileNav = false, ...props }: HeaderPro
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 w-full border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/60',
+        'fixed top-2.5 sm:top-4 inset-x-0 z-40 w-full px-3 sm:px-6 pointer-events-none transition-all duration-300',
         className
       )}
       {...props}
     >
-      <Container className="flex h-16 items-center justify-between">
+      <div
+        className={cn(
+          'pointer-events-auto mx-auto flex h-12 sm:h-14 md:h-16 max-w-5xl items-center justify-between rounded-full px-3.5 sm:px-5 md:px-6 transition-all duration-300',
+          isScrolled
+            ? 'bg-white/95 backdrop-blur-md border border-slate-300/90 shadow-hover text-slate-900'
+            : 'bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-soft text-slate-900'
+        )}
+      >
         {/* Brand Logo */}
-        <Logo size="default" />
+        <div className="shrink-0 flex items-center">
+          <Logo size="default" />
+        </div>
 
         {/* Desktop Navigation */}
         <Navigation />
 
         {/* Right Actions: Desktop Auth State & Mobile Menu Button */}
-        <div className="relative flex items-center space-x-3">
+        <div className="relative flex items-center space-x-2 sm:space-x-3 shrink-0">
           {/* Desktop-only Auth Actions */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 <div className="flex flex-col items-end text-xs">
@@ -71,21 +90,21 @@ export function Header({ className, hideMobileNav = false, ...props }: HeaderPro
                   variant="outline"
                   size="sm"
                   onClick={() => logout()}
-                  className="text-xs font-semibold"
+                  className="h-8 rounded-full px-3 text-xs font-semibold"
                 >
                   <LogOut className="mr-1.5 h-3.5 w-3.5" />
                   <span>Logout</span>
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="text-xs font-semibold">
+                  <Button variant="ghost" size="sm" className="h-8 rounded-full px-3.5 text-xs font-semibold text-slate-700 hover:text-slate-900">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button variant="default" size="sm" className="text-xs font-semibold">
+                  <Button variant="default" size="sm" className="h-8 rounded-full px-4 text-xs font-semibold shadow-subtle hover:shadow-hover transition-shadow">
                     Sign Up
                   </Button>
                 </Link>
@@ -100,15 +119,15 @@ export function Header({ className, hideMobileNav = false, ...props }: HeaderPro
                 ref={triggerRef}
                 variant="ghost"
                 size="icon"
-                className="flex items-center justify-center h-10 w-10 text-foreground"
+                className="flex items-center justify-center h-9 w-9 rounded-full text-foreground hover:bg-slate-100"
                 onClick={() => setIsMobileMenuOpen((prev) => !prev)}
                 aria-expanded={isMobileMenuOpen}
                 aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               >
                 {isMobileMenuOpen ? (
-                  <X className="h-6 w-6 text-foreground" />
+                  <X className="h-5 w-5 text-foreground" />
                 ) : (
-                  <Menu className="h-6 w-6 text-foreground" />
+                  <Menu className="h-5 w-5 text-foreground" />
                 )}
               </Button>
 
@@ -120,7 +139,7 @@ export function Header({ className, hideMobileNav = false, ...props }: HeaderPro
             </div>
           )}
         </div>
-      </Container>
+      </div>
     </header>
   );
 }

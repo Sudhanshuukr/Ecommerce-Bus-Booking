@@ -10,11 +10,11 @@ export interface BookingStepperProps {
   className?: string;
 }
 
-const STEPS: { id: BookingStep; label: string; icon: React.ElementType }[] = [
-  { id: 'seats', label: '1. Select Seats', icon: Armchair },
-  { id: 'passengers', label: '2. Passenger Details', icon: User },
-  { id: 'review', label: '3. Review Booking', icon: ShieldCheck },
-  { id: 'confirmation', label: '4. Confirmed', icon: Ticket },
+const STEPS: { id: BookingStep; label: string; shortLabel: string; icon: React.ElementType }[] = [
+  { id: 'seats', label: '1. Select Seats', shortLabel: '1. Seats', icon: Armchair },
+  { id: 'passengers', label: '2. Passenger Details', shortLabel: '2. Passengers', icon: User },
+  { id: 'review', label: '3. Review Booking', shortLabel: '3. Review', icon: ShieldCheck },
+  { id: 'confirmation', label: '4. Confirmed', shortLabel: '4. Confirmed', icon: Ticket },
 ];
 
 export const BookingStepper = React.memo<BookingStepperProps>(function BookingStepper({
@@ -32,7 +32,7 @@ export const BookingStepper = React.memo<BookingStepperProps>(function BookingSt
 
   return (
     <nav aria-label="Booking Progress" className={cn('w-full', className)}>
-      <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-subtle">
+      <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 rounded-2xl border border-slate-200 bg-white p-2.5 sm:p-4 shadow-subtle">
         {STEPS.map((step, index) => {
           const isCompleted = index < currentIndex;
           const isCurrent = index === currentIndex;
@@ -42,7 +42,7 @@ export const BookingStepper = React.memo<BookingStepperProps>(function BookingSt
             <li
               key={step.id}
               className={cn(
-                'flex items-center space-x-2.5 rounded-xl p-2.5 transition-all text-xs font-bold',
+                'flex items-center space-x-2 sm:space-x-2.5 rounded-xl p-2 sm:p-2.5 transition-all text-xs font-bold',
                 isCurrent && 'bg-primary/10 text-primary border border-primary/20 shadow-subtle',
                 isCompleted && 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
                 !isCurrent && !isCompleted && 'bg-slate-50 text-slate-400 border border-slate-100'
@@ -50,15 +50,16 @@ export const BookingStepper = React.memo<BookingStepperProps>(function BookingSt
             >
               <div
                 className={cn(
-                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black transition-colors',
+                  'flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black transition-colors',
                   isCurrent && 'bg-primary text-white',
                   isCompleted && 'bg-emerald-600 text-white',
                   !isCurrent && !isCompleted && 'bg-slate-200 text-slate-500'
                 )}
               >
-                {isCompleted ? <Check className="h-4 w-4 stroke-[3]" /> : <StepIcon className="h-3.5 w-3.5" />}
+                {isCompleted ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" /> : <StepIcon className="h-3.5 w-3.5" />}
               </div>
-              <span className="truncate">{step.label}</span>
+              <span className="truncate sm:hidden">{step.shortLabel}</span>
+              <span className="truncate hidden sm:inline">{step.label}</span>
             </li>
           );
         })}
