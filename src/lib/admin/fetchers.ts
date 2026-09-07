@@ -391,7 +391,7 @@ export async function getAdminUsers(searchQuery = '', roleFilter = 'all'): Promi
   const supabase = getSupabaseServerClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = (supabase.from('users') as any).select('*');
+  let query = (supabase.from('users') as any).select('id, email, full_name, phone, role, operator_id, created_at');
 
   if (roleFilter && roleFilter !== 'all') {
     query = query.eq('role', roleFilter);

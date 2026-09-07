@@ -4,8 +4,8 @@ import { AppShell, Container, Section } from '@/components/layout';
 import { SearchResultsContainer } from '@/features/search-results/components/SearchResultsContainer';
 
 export const metadata = {
-  title: 'Search Bus Routes | Bus Booking Platform',
-  description: 'Compare and book verified intercity bus schedules with real-time seat availability.',
+  title: 'Search Bus Routes | Bustkit',
+  description: 'Compare and book verified intercity bus schedules with real-time seat availability on Bustkit.',
 };
 
 export default function SearchPage() {

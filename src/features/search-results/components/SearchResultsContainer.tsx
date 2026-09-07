@@ -30,7 +30,8 @@ export function SearchResultsContainer() {
   const parsedQuery = React.useMemo<ParsedSearchQuery>(() => {
     const origin = searchParams.get('origin') || '';
     const destination = searchParams.get('destination') || '';
-    const departureDate = searchParams.get('departureDate') || '';
+    const departureDate =
+      searchParams.get('departureDate') || searchParams.get('date') || '';
     const returnDate = searchParams.get('returnDate') || '';
     const adults = Math.max(1, parseInt(searchParams.get('adults') || '1', 10));
     const children = Math.max(0, parseInt(searchParams.get('children') || '0', 10));
@@ -51,8 +52,7 @@ export function SearchResultsContainer() {
   }, [searchParams]);
 
   // 2. Fetch live schedules from GET /api/schedules
-  const fetchSchedules = React.useCallback(() => {
-    let isMounted = true;
+  const fetchSchedules = React.useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -63,41 +63,74 @@ export function SearchResultsContainer() {
 
     const url = `/api/schedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch schedules (HTTP ${res.status})`);
-        }
-        return res.json();
-      })
-      .then((json) => {
-        if (!isMounted) return;
-        if (json.success && Array.isArray(json.data)) {
-          setSchedules(json.data);
-        } else {
-          setError(json.error?.message || 'Unable to load schedules.');
-        }
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        console.error('[Search API Error]:', err);
-        setError(
-          'Unable to connect to the schedule service. Please check your network connection and try again.'
-        );
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch schedules (HTTP ${res.status})`);
+      }
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setSchedules(json.data);
+      } else {
+        setError(json.error?.message || 'Unable to load schedules.');
+      }
+    } catch (err) {
+      console.error('[Search API Error]:', err);
+      setError(
+        'Unable to connect to the schedule service. Please check your network connection and try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, [parsedQuery.origin, parsedQuery.destination, parsedQuery.departureDate]);
 
   React.useEffect(() => {
-    const cleanup = fetchSchedules();
-    return cleanup;
-  }, [fetchSchedules]);
+    let isCancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setError(null);
+
+      const queryParams = new URLSearchParams();
+      if (parsedQuery.origin) queryParams.set('origin', parsedQuery.origin);
+      if (parsedQuery.destination) queryParams.set('destination', parsedQuery.destination);
+      if (parsedQuery.departureDate) queryParams.set('date', parsedQuery.departureDate);
+
+      const url = `/api/schedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch schedules (HTTP ${res.status})`);
+        }
+        const json = await res.json();
+        if (!isCancelled) {
+          if (json.success && Array.isArray(json.data)) {
+            setSchedules(json.data);
+          } else {
+            setError(json.error?.message || 'Unable to load schedules.');
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('[Search API Error]:', err);
+          setError(
+            'Unable to connect to the schedule service. Please check your network connection and try again.'
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [parsedQuery.origin, parsedQuery.destination, parsedQuery.departureDate]);
 
   // 3. Parse URL Filter State (Single source of truth)
   const filterState = React.useMemo<FilterState>(

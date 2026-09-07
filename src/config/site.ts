@@ -1,6 +1,6 @@
 export const siteConfig = {
-  name: 'Bus Booking Platform',
+  name: 'Bustkit',
   description:
     'A high-performance, modern platform for seamless intercity bus ticket reservation.',
-  url: 'https://busbooking.example.com',
+  url: process.env.NEXT_PUBLIC_APP_URL || '',
 };

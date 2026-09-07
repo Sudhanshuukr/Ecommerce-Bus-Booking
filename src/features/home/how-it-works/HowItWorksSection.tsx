@@ -48,7 +48,7 @@ export function HowItWorksSection({ className }: HowItWorksSectionProps) {
           </div>
 
           <h2 className="font-heading text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-            How Bus Booking Works
+            How Bustkit Works
           </h2>
 
           <p className="text-sm sm:text-base text-muted-foreground">

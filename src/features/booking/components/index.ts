@@ -9,3 +9,4 @@ export * from './BookingStepper';
 export * from './PassengerForm';
 export * from './BookingReview';
 export * from './BookingConfirmation';
+export * from './AuthRequiredModal';

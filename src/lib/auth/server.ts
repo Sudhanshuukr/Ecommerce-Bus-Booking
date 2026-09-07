@@ -4,7 +4,34 @@ import { apiError } from '@/lib/api/response';
 import { AppRole, AuthUserSession, UserProfile, normalizeRole } from './types';
 
 export async function getCurrentAuthUser(req?: Request): Promise<AuthUserSession | null> {
-  const supabase = getSupabaseServerClient();
+  let supabase;
+  try {
+    supabase = getSupabaseServerClient();
+  } catch (err) {
+    if (process.env.NODE_ENV === 'development' && process.env.ENABLE_AUTH_MOCK === 'true') {
+      console.warn('[Auth] Running in development with mock auth enabled.');
+      // Explicit development mock fallback only
+      return {
+        user: {
+          id: 'dev-mock-user-id',
+          email: 'dev@bustkit.local',
+        },
+        profile: {
+          id: 'dev-mock-user-id',
+          email: 'dev@bustkit.local',
+          fullName: 'Development Test User',
+          phone: null,
+          role: 'customer',
+          operatorId: null,
+          createdAt: new Date().toISOString(),
+        },
+        token: 'dev-mock-token',
+      };
+    }
+    // In production or when ENABLE_AUTH_MOCK is not true, fail securely
+    console.error('[Auth] Supabase server client unavailable:', err instanceof Error ? err.message : String(err));
+    return null;
+  }
 
   let token: string | undefined;
 

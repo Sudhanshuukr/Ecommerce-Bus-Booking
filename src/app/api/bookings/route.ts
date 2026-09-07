@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { getCurrentAuthUser } from '@/lib/auth/server';
+import { requireAuth } from '@/lib/auth/server';
 import { apiSuccess, apiError } from '@/lib/api/response';
 
 interface IncomingPassenger {
@@ -105,19 +105,17 @@ export async function POST(request: NextRequest) {
       seatIdSet.add(cleanSeatId);
     }
 
-    const supabase = getSupabaseServerClient();
-
-    // Check for optional authenticated session (supports guest booking when null)
-    let authenticatedUserId: string | null = null;
-    try {
-      const authSession = await getCurrentAuthUser(request);
-      if (authSession?.user?.id) {
-        authenticatedUserId = authSession.user.id;
-      }
-    } catch {
-      // Guest booking fallback
-      authenticatedUserId = null;
+    // Enforce strict server-side authentication
+    const { session: authSession, errorResponse } = await requireAuth(request);
+    if (errorResponse || !authSession?.user?.id) {
+      return (
+        errorResponse ||
+        apiError('Authentication required. Please log in before creating a booking.', 'UNAUTHENTICATED', 401)
+      );
     }
+
+    const authenticatedUserId = authSession.user.id;
+    const supabase = getSupabaseServerClient(authSession.token);
 
     // Generate unique booking reference: BB-2026-XXXXXX
     const randomDigits = Math.floor(100000 + Math.random() * 900000);

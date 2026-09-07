@@ -3,8 +3,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 
 export const metadata: Metadata = {
-  title: 'Sign In',
-  description: 'Sign in to your Bus Booking Platform account.',
+  title: 'Sign In | Bustkit',
+  description: 'Sign in to your Bustkit account.',
 };
 
 export default function LoginPage() {

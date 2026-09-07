@@ -18,20 +18,22 @@ export interface SocialLink {
 }
 
 export const quickLinksGroup: FooterLinkGroup = {
-  title: 'Quick Links',
+  title: 'Platform Navigation',
   links: [
     { label: 'Home', href: '/' },
     { label: 'Search Buses', href: '/search' },
-    { label: 'Popular Routes', href: '/routes' },
+    { label: 'Available Routes', href: '/routes' },
+    { label: 'Bus Operators', href: '/operators' },
+    { label: 'My Bookings', href: '/my-bookings' },
   ],
 };
 
 export const supportLinksGroup: FooterLinkGroup = {
-  title: 'Explore & Book',
+  title: 'Company & Support',
   links: [
-    { label: 'Find Tickets', href: '/search' },
-    { label: 'Featured Routes', href: '/routes' },
-    { label: 'Book Travel', href: '/' },
+    { label: 'About Bustkit', href: '/about' },
+    { label: 'Contact Support', href: '/contact' },
+    { label: 'Popular Routes', href: '/routes' },
   ],
 };
 

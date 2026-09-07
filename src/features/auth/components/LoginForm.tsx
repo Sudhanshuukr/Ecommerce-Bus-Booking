@@ -2,13 +2,17 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../context/AuthProvider';
+import { getSafeInternalPath } from '@/lib/utils';
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get('next') || searchParams.get('redirect');
+  const safeReturnUrl = getSafeInternalPath(nextParam, '/');
   const { login } = useAuth();
 
   const [email, setEmail] = React.useState('');
@@ -34,7 +38,7 @@ export function LoginForm() {
       return;
     }
 
-    router.push('/');
+    router.push(safeReturnUrl);
     router.refresh();
   };
 
@@ -45,7 +49,7 @@ export function LoginForm() {
           <ShieldCheck className="h-6 w-6" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Welcome Back</h1>
-        <p className="text-xs text-muted-foreground">Sign in to manage your bus bookings and account preferences.</p>
+        <p className="text-xs text-muted-foreground">Sign in to manage your Bustkit bookings and account preferences.</p>
       </div>
 
       {error && (
@@ -118,7 +122,10 @@ export function LoginForm() {
 
       <div className="border-t border-slate-100 pt-4 text-center text-xs text-muted-foreground">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="font-bold text-primary hover:underline">
+        <Link
+          href={nextParam ? `/signup?next=${encodeURIComponent(safeReturnUrl)}` : '/signup'}
+          className="font-bold text-primary hover:underline"
+        >
           Create account
         </Link>
       </div>

@@ -4,8 +4,8 @@ import { AppShell, Container, Section } from '@/components/layout';
 import { SearchResultsContainer } from '@/features/search-results';
 
 export const metadata = {
-  title: 'Available Bus Routes | Bus Booking Platform',
-  description: 'Browse all intercity bus routes and schedules.',
+  title: 'Available Bus Routes | Bustkit',
+  description: 'Browse all intercity bus routes and schedules on Bustkit.',
 };
 
 export default function RoutesPage() {

@@ -4,8 +4,8 @@ import { BusDetailsContainer } from '@/features/bus/components/BusDetailsContain
 import { BookingContainer } from '@/features/booking/components/BookingContainer';
 
 export const metadata = {
-  title: 'Bus Schedule Details | Bus Booking Platform',
-  description: 'View schedule details, operator information, journey timeline, and seat availability.',
+  title: 'Bus Schedule Details | Bustkit',
+  description: 'View schedule details, operator information, journey timeline, and seat availability on Bustkit.',
 };
 
 export interface BusDetailPageProps {

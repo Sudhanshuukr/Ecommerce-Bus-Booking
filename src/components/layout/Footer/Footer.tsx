@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, TicketCheck, Headphones, ArrowUpRight } from 'lucide-react';
+import { Building2, TicketCheck, Layers, ArrowUpRight } from 'lucide-react';
 import { Container } from '../Container';
 import { Logo } from '@/components/shared/Logo';
 import { ScrollReveal } from '@/components/shared';
@@ -38,11 +38,11 @@ export function Footer({ className, ...props }: FooterProps) {
               <div className="flex items-center space-x-3">
                 <Logo size="default" className="text-white" />
                 <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-0.5 text-xs font-semibold text-teal-400">
-                  Verified Transit Network
+                  Intercity Transit Platform
                 </span>
               </div>
               <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-                India&apos;s modern intercity bus reservation platform. Compare schedules across state transit corporations and private operators, choose your exact seat on live layouts, and get instant digital e-tickets.
+                India&apos;s modern intercity bus reservation platform. Compare schedules across bus operators, choose your exact seat on live layouts, and get instant digital e-tickets.
               </p>
             </div>
 
@@ -113,29 +113,29 @@ export function Footer({ className, ...props }: FooterProps) {
               </ul>
             </div>
 
-            {/* Platform Guarantees Column */}
+            {/* Platform Features Column */}
             <div className="space-y-4">
               <h3 className="font-heading text-xs font-bold tracking-wider text-slate-100 uppercase">
-                Platform Trust
+                Platform Features
               </h3>
               <div className="space-y-3 text-xs text-slate-400">
                 <div className="flex items-center space-x-2.5">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-teal-400">
-                    <ShieldCheck className="h-4 w-4" />
+                    <Building2 className="h-4 w-4" />
                   </div>
-                  <span>100% Verified Fleet Operators</span>
+                  <span>Multi-Operator Schedules</span>
                 </div>
                 <div className="flex items-center space-x-2.5">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-teal-400">
                     <TicketCheck className="h-4 w-4" />
                   </div>
-                  <span>Instant PNR Digital E-Tickets</span>
+                  <span>Instant PNR Digital Passes</span>
                 </div>
                 <div className="flex items-center space-x-2.5">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-teal-400">
-                    <Headphones className="h-4 w-4" />
+                    <Layers className="h-4 w-4" />
                   </div>
-                  <span>24/7 Passenger Travel Assistance</span>
+                  <span>Interactive Deck Layouts</span>
                 </div>
               </div>
             </div>
@@ -145,7 +145,7 @@ export function Footer({ className, ...props }: FooterProps) {
         {/* Bottom Bar */}
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-xs text-slate-500 sm:flex-row">
-            <p>© {currentYear} Bus Booking Platform. All rights reserved.</p>
+            <p>© {currentYear} Bustkit. All rights reserved.</p>
             <p className="font-medium text-slate-400">
               Built for seamless intercity travel across India
             </p>

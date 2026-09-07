@@ -26,9 +26,8 @@ export function Logo({
         className
       )}
     >
-      <span>Bus</span>
-      <span className="text-accent">Booking</span>
-      <span className="text-accent ml-0.5 font-bold">.</span>
+      <span>Bust</span>
+      <span className="text-accent">kit</span>
     </span>
   );
 
@@ -37,7 +36,7 @@ export function Logo({
       <Link
         href={href}
         className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
-        aria-label="Bus Booking Platform Home"
+        aria-label="Bustkit Home"
       >
         {logoContent}
       </Link>

@@ -15,6 +15,8 @@ import { BookingStepper } from './BookingStepper';
 import { PassengerForm, validatePassenger } from './PassengerForm';
 import { BookingReview } from './BookingReview';
 import { BookingConfirmation } from './BookingConfirmation';
+import { AuthRequiredModal } from './AuthRequiredModal';
+import { useAuth } from '@/features/auth/context/AuthProvider';
 import {
   BookingStep,
   Passenger,
@@ -32,6 +34,9 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
+
   const dateQuery = searchParams?.get('date') || searchParams?.get('departureDate');
   const effectiveJourneyDate = dateQuery || new Date().toISOString().split('T')[0];
 
@@ -108,6 +113,7 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     toggleSeatSelection,
     setSelectedBoardingPointId,
     setSelectedDroppingPointId,
+    setSelectedSeatIds,
     clearSelection,
     boardingPoints,
     droppingPoints,
@@ -155,15 +161,64 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     null
   );
 
+  // Restore and revalidate selected seats from query parameters on schedule load
+  const initialSeatsParam = searchParams.get('seats');
+  const [restoredSeatsInitialized, setRestoredSeatsInitialized] = React.useState(false);
+
   React.useEffect(() => {
+    if (!schedule || restoredSeatsInitialized) return;
+    if (initialSeatsParam) {
+      setRestoredSeatsInitialized(true);
+      const requestedIds = initialSeatsParam.split(',').map((s) => s.trim()).filter(Boolean);
+      if (requestedIds.length > 0) {
+        const availableSeats: string[] = [];
+        let hasUnavailable = false;
+
+        requestedIds.forEach((id) => {
+          const seat = schedule.seats?.find((s) => s.id === id);
+          if (seat && seat.status === 'available') {
+            availableSeats.push(id);
+          } else {
+            hasUnavailable = true;
+          }
+        });
+
+        if (availableSeats.length > 0) {
+          setSelectedSeatIds(availableSeats);
+        }
+
+        if (hasUnavailable) {
+          setStepErrorMessage(
+            'One or more selected seats are no longer available. Please review your seat selection.'
+          );
+          setCurrentStep('seats');
+        }
+      }
+    }
+  }, [schedule, initialSeatsParam, restoredSeatsInitialized, setSelectedSeatIds]);
+
+  // Guard step parameter if unauthenticated
+  React.useEffect(() => {
+    if (isAuthLoading) return;
+
     if (stepParam === 'passengers' || stepParam === 'passenger') {
-      setCurrentStep('passengers');
+      if (!isAuthenticated) {
+        setCurrentStep('seats');
+        setIsAuthModalOpen(true);
+      } else {
+        setCurrentStep('passengers');
+      }
     } else if (stepParam === 'review') {
-      setCurrentStep('review');
+      if (!isAuthenticated) {
+        setCurrentStep('seats');
+        setIsAuthModalOpen(true);
+      } else {
+        setCurrentStep('review');
+      }
     } else if (stepParam === 'seats') {
       setCurrentStep('seats');
     }
-  }, [stepParam]);
+  }, [stepParam, isAuthenticated, isAuthLoading]);
 
   const navigateToStep = React.useCallback(
     (step: BookingStep) => {
@@ -214,6 +269,19 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
     []
   );
 
+  // Auth Return URL computation preserving schedule, date, step=passengers, and selected seats
+  const authReturnUrl = React.useMemo(() => {
+    const params = new URLSearchParams();
+    if (effectiveJourneyDate) {
+      params.set('date', effectiveJourneyDate);
+    }
+    params.set('step', 'passengers');
+    if (selectedSeatIds.length > 0) {
+      params.set('seats', selectedSeatIds.join(','));
+    }
+    return `${pathname}?${params.toString()}`;
+  }, [pathname, effectiveJourneyDate, selectedSeatIds]);
+
   // Transition handlers
   const handleProceedToPassengers = () => {
     setStepErrorMessage(null);
@@ -221,6 +289,12 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
       setStepErrorMessage('Please select at least 1 seat to proceed.');
       return;
     }
+
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     navigateToStep('passengers');
   };
 
@@ -261,6 +335,12 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
 
   const handleReviewVerified = async () => {
     if (!schedule || isSubmittingBooking) return;
+
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     setIsSubmittingBooking(true);
     setStepErrorMessage(null);
 
@@ -293,6 +373,13 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
       const json = await res.json();
 
       if (!res.ok || !json.success) {
+        if (res.status === 401 || json.error?.code === 'UNAUTHENTICATED') {
+          setStepErrorMessage('Authentication required. Please log in to complete your booking.');
+          setIsAuthModalOpen(true);
+          setIsSubmittingBooking(false);
+          return;
+        }
+
         const errorMsg =
           json.error?.message || json.message || 'Failed to complete booking. Please try again.';
         setStepErrorMessage(errorMsg);
@@ -603,6 +690,13 @@ export function BookingContainer({ busId = '', initialStep, className }: Booking
           </button>
         </div>
       )}
+
+      {/* Authentication Required Modal */}
+      <AuthRequiredModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        returnUrl={authReturnUrl}
+      />
     </div>
   );
 }

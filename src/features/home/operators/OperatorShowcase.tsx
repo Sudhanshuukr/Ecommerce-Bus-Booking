@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Building2, Star, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { Building2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Container, Section } from '@/components/layout';
 import { ScrollReveal } from '@/components/shared';
@@ -66,19 +67,26 @@ export function OperatorShowcase({ className }: OperatorShowcaseProps) {
                   </div>
 
                   <div>
-                    <div className="flex items-center space-x-1.5">
-                      <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                        {op.name}
-                      </h3>
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" aria-label="Verified" />
-                    </div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                      {op.name}
+                    </h3>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {op.type} • {op.reviews} reviews
+                      {op.reviews} verified reviews
                     </p>
                   </div>
                 </div>
               </Card>
             ))}
+          </div>
+
+          <div className="mt-8 sm:mt-10 flex justify-center">
+            <Link
+              href="/operators"
+              className="inline-flex items-center space-x-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 shadow-subtle hover:bg-slate-50 hover:border-slate-300 hover:shadow-hover transition-all"
+            >
+              <span>Explore All 14 Fleet Operators</span>
+              <span className="text-primary font-black">→</span>
+            </Link>
           </div>
         </ScrollReveal>
       </Container>

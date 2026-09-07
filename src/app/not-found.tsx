@@ -4,11 +4,6 @@ import { Bus, Home } from 'lucide-react';
 import { AppShell, Container } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 
-export const metadata = {
-  title: 'Page Not Found | Bus Booking Platform',
-  description: 'The requested page could not be found.',
-};
-
 export default function NotFound() {
   return (
     <AppShell>

@@ -19,7 +19,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Platform Admin Dashboard',
-  description: 'Executive overview and platform-wide metrics for Bus Booking Engine.',
+  description: 'Executive overview and platform-wide metrics for Bustkit Engine.',
 };
 
 export default async function AdminDashboardPage() {

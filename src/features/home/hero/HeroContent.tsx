@@ -7,7 +7,7 @@ export function HeroContent() {
       {/* Eyebrow Pill */}
       <div className="inline-flex items-center space-x-1.5 sm:space-x-2 rounded-full border border-primary/15 bg-primary/5 px-3.5 py-1 sm:px-3.5 sm:py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-primary">
         <Sparkles className="h-3.5 w-3.5 text-accent" />
-        <span>India&apos;s Intercity Bus Booking Network</span>
+        <span>India&apos;s Intercity Bus Network</span>
       </div>
 
       {/* Main Single Semantic H1 */}

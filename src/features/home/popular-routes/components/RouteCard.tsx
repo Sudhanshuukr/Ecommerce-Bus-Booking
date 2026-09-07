@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Clock, Bus, MapPin } from 'lucide-react';

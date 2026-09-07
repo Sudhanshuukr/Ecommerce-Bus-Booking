@@ -3,8 +3,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { SignupForm } from '@/features/auth/components/SignupForm';
 
 export const metadata: Metadata = {
-  title: 'Create Account',
-  description: 'Create a new customer account on Bus Booking Platform.',
+  title: 'Create Account | Bustkit',
+  description: 'Create a new customer account on Bustkit.',
 };
 
 export default function SignupPage() {

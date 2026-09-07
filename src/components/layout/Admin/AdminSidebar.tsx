@@ -78,7 +78,7 @@ export function AdminSidebar({ className }: { className?: string }) {
 
       {/* System Footer Note */}
       <div className="pt-4 border-t border-slate-800 px-2 text-[11px] text-slate-500">
-        <p className="font-semibold text-slate-400">Bus Booking Engine v1.0</p>
+        <p className="font-semibold text-slate-400">Bustkit Engine v1.0</p>
         <p className="mt-0.5">Strictly for authorized platform administrators.</p>
       </div>
     </aside>

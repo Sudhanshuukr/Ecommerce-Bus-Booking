@@ -2,13 +2,17 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, User as UserIcon, AlertCircle, ArrowRight, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../context/AuthProvider';
+import { getSafeInternalPath } from '@/lib/utils';
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get('next') || searchParams.get('redirect');
+  const safeReturnUrl = getSafeInternalPath(nextParam, '/');
   const { signup } = useAuth();
 
   const [fullName, setFullName] = React.useState('');
@@ -46,7 +50,7 @@ export function SignupForm() {
       return;
     }
 
-    router.push('/');
+    router.push(safeReturnUrl);
     router.refresh();
   };
 
@@ -168,7 +172,10 @@ export function SignupForm() {
 
       <div className="border-t border-slate-100 pt-4 text-center text-xs text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/login" className="font-bold text-primary hover:underline">
+        <Link
+          href={nextParam ? `/login?next=${encodeURIComponent(safeReturnUrl)}` : '/login'}
+          className="font-bold text-primary hover:underline"
+        >
           Sign in
         </Link>
       </div>
